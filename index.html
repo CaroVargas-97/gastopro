@@ -1450,11 +1450,20 @@ function renderTeam(){
       '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
       '<td style="text-align:right"><div class="td-mono">'+ars(m.valor_ars||0)+'</div></td>'+
       '<td style="text-align:right"><div class="td-mono-sm" style="color:#0891b2">U$S '+usdEquiv.toLocaleString('es-AR')+'</div></td>'+
-      '<td><div class="action-btns"><button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="TEAM"><i class="ti ti-trash"></i></button></div></td>'+
+      '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
+      '<td><div class="action-btns">'+
+        '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="TEAM" data-action="edit"><i class="ti ti-pencil"></i></button>'+
+        '<button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="TEAM" data-action="del"><i class="ti ti-trash"></i></button>'+
+      '</div></td>'+
     '</tr>';
   }).join('');
-  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
-  body.querySelectorAll('button[data-id]').forEach(function(btn){btn.addEventListener('click',function(){deleteCuentaMov(this.dataset.id,this.dataset.cuenta);});});
+  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  body.querySelectorAll('button[data-id]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      if(this.dataset.action==='edit')startEditCuenta(this.dataset.id,this.dataset.cuenta);
+      else deleteCuentaMov(this.dataset.id,this.dataset.cuenta);
+    });
+  });
 }
 
 function showTeamForm(){
@@ -1523,11 +1532,19 @@ function renderInv(){
       '<td style="text-align:right"><div class="td-mono-sm" style="color:#dc2626">'+(arsHoy>0?ars(arsHoy):'-')+'</div></td>'+
       '<td style="text-align:right"><div class="td-mono-sm" style="color:#0891b2">'+(m.valor_usd>0?'U$S '+parseFloat(m.valor_usd).toLocaleString('es-AR',{maximumFractionDigits:2}):'-')+'</div></td>'+
       '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
-      '<td><div class="action-btns"><button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="INVERSIONES"><i class="ti ti-trash"></i></button></div></td>'+
+      '<td><div class="action-btns">'+
+        '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="INVERSIONES" data-action="edit"><i class="ti ti-pencil"></i></button>'+
+        '<button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="INVERSIONES" data-action="del"><i class="ti ti-trash"></i></button>'+
+      '</div></td>'+
     '</tr>';
   }).join('');
   body.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">ARS hoy</th><th style="text-align:right">USD</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
-  body.querySelectorAll('button[data-id]').forEach(function(btn){btn.addEventListener('click',function(){deleteCuentaMov(this.dataset.id,this.dataset.cuenta);});});
+  body.querySelectorAll('button[data-id]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      if(this.dataset.action==='edit')startEditCuenta(this.dataset.id,this.dataset.cuenta);
+      else deleteCuentaMov(this.dataset.id,this.dataset.cuenta);
+    });
+  });
 }
 
 function showInvForm(){
@@ -1568,6 +1585,88 @@ async function saveInvMov(){
     setSyncStatus('ok');showToast('Movimiento guardado');
     document.getElementById('inv-form-area').innerHTML='';
     renderInv();
+  }catch(e){setSyncStatus('error');showToast('Error: '+e.message);}
+}
+
+function startEditCuenta(id,cuenta){
+  let dataArr,renderFn,bodyId;
+  if(cuenta==='TEAM'){dataArr=teamData;renderFn=renderTeam;bodyId='team-body';}
+  else if(cuenta==='INVERSIONES'){dataArr=invData;renderFn=renderInv;bodyId='inv-body';}
+  else if(cuenta==='TRACKER'){dataArr=trackerData;renderFn=renderTracker;bodyId='tracker-body';}
+  else{dataArr=ibathData;renderFn=renderIbath;bodyId='ibath-body';}
+  const m=dataArr.find(function(r){return String(r.id)===String(id);});
+  if(!m)return;
+  const T=tc();
+  const btn=document.querySelector('[data-id="'+id+'"][data-cuenta="'+cuenta+'"]');
+  if(!btn)return;
+  const row=btn.closest('tr');
+  if(!row)return;
+  const inpStyle='style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text1);font-size:12px"';
+  const selStyle='style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text1);font-size:12px"';
+  if(cuenta==='INVERSIONES'){
+    row.innerHTML=
+      '<td><input id="ec-fecha" type="date" value="'+(m.fecha||'')+'" '+inpStyle+'></td>'+
+      '<td><input id="ec-desc" value="'+(m.descripcion||'')+'" '+inpStyle+'></td>'+
+      '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
+      '<td><input id="ec-ars" type="number" value="'+(m.valor_ars||0)+'" '+inpStyle+'></td>'+
+      '<td></td>'+
+      '<td><input id="ec-usd" type="number" value="'+(m.valor_usd||0)+'" '+inpStyle+'></td>'+
+      '<td><input id="ec-tc" type="number" value="'+(m.tc||Math.round(T))+'" '+inpStyle+'></td>'+
+      '<td><div class="action-btns">'+
+        '<button class="icon-btn icon-btn-save" id="ec-save" title="Guardar"><i class="ti ti-check"></i></button>'+
+        '<button class="icon-btn" id="ec-cancel" title="Cancelar"><i class="ti ti-x"></i></button>'+
+      '</div></td>';
+  }else{
+    const mesopts=MESES.map(function(mes){return '<option value="'+mes+'" '+(m.mes===mes?'selected':'')+'>'+mes.charAt(0).toUpperCase()+mes.slice(1)+'</option>';}).join('');
+    row.innerHTML=
+      '<td><select id="ec-mes" '+selStyle+'>'+mesopts+'</select></td>'+
+      '<td><input id="ec-desc" value="'+(m.descripcion||'')+'" '+inpStyle+'></td>'+
+      '<td><select id="ec-met" '+selStyle+'><option value="EFECTIVO" '+(m.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(m.metodo==='CREDITO'?'selected':'')+'>Crédito</option></select></td>'+
+      '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
+      '<td><input id="ec-ars" type="number" value="'+(m.valor_ars||0)+'" '+inpStyle+'></td>'+
+      '<td></td>'+
+      '<td style="font-size:11px;color:var(--text3)">$'+(m.tc?Math.round(m.tc).toLocaleString('es-AR'):Math.round(T).toLocaleString('es-AR'))+'</td>'+
+      '<td><div class="action-btns">'+
+        '<button class="icon-btn icon-btn-save" id="ec-save" title="Guardar"><i class="ti ti-check"></i></button>'+
+        '<button class="icon-btn" id="ec-cancel" title="Cancelar"><i class="ti ti-x"></i></button>'+
+      '</div></td>';
+  }
+  document.getElementById('ec-save').addEventListener('click',function(){saveEditCuenta(id,cuenta,m.tc||T);});
+  document.getElementById('ec-cancel').addEventListener('click',function(){renderFn();});
+}
+
+async function saveEditCuenta(id,cuenta,oldTc){
+  let dataArr,renderFn;
+  if(cuenta==='TEAM'){dataArr=teamData;renderFn=renderTeam;}
+  else if(cuenta==='INVERSIONES'){dataArr=invData;renderFn=renderInv;}
+  else if(cuenta==='TRACKER'){dataArr=trackerData;renderFn=renderTracker;}
+  else{dataArr=ibathData;renderFn=renderIbath;}
+  const T=tc();
+  let updates;
+  if(cuenta==='INVERSIONES'){
+    const fecha=document.getElementById('ec-fecha').value;
+    const desc=(document.getElementById('ec-desc').value||'').trim().toUpperCase();
+    const valARS=parseFloat(document.getElementById('ec-ars').value)||0;
+    const valUSD=parseFloat(document.getElementById('ec-usd').value)||0;
+    const tcVal=parseFloat(document.getElementById('ec-tc').value)||oldTc||T;
+    if(!desc||(!valARS&&!valUSD)){showToast('Completá descripción y al menos un monto');return;}
+    updates={descripcion:desc,fecha:fecha,valor_ars:valARS,valor_usd:valUSD,tc:tcVal};
+  }else{
+    const mes=document.getElementById('ec-mes').value;
+    const met=document.getElementById('ec-met').value;
+    const desc=(document.getElementById('ec-desc').value||'').trim().toUpperCase();
+    const valARS=parseFloat(document.getElementById('ec-ars').value)||0;
+    if(!mes||!desc||!valARS){showToast('Completá todos los campos');return;}
+    updates={mes:mes,metodo:met,descripcion:desc,valor_ars:valARS,valor_usd:parseFloat((valARS/(oldTc||T)).toFixed(2))};
+  }
+  setSyncStatus('saving');
+  try{
+    const res=await sb.from('cuentas_movimientos').update(updates).eq('id',id).select().single();
+    if(res.error)throw res.error;
+    const idx=dataArr.findIndex(function(r){return String(r.id)===String(id);});
+    if(idx>-1)dataArr[idx]=Object.assign({},dataArr[idx],res.data);
+    setSyncStatus('ok');showToast('Guardado');
+    renderFn();
   }catch(e){setSyncStatus('error');showToast('Error: '+e.message);}
 }
 
@@ -1614,11 +1713,20 @@ function renderTracker(){
       '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
       '<td style="text-align:right"><div class="td-mono">'+ars(m.valor_ars||0)+'</div></td>'+
       '<td style="text-align:right"><div class="td-mono-sm" style="color:#d97706">U$S '+usdEquiv.toLocaleString('es-AR')+'</div></td>'+
-      '<td><div class="action-btns"><button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="TRACKER"><i class="ti ti-trash"></i></button></div></td>'+
+      '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
+      '<td><div class="action-btns">'+
+        '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="TRACKER" data-action="edit"><i class="ti ti-pencil"></i></button>'+
+        '<button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="TRACKER" data-action="del"><i class="ti ti-trash"></i></button>'+
+      '</div></td>'+
     '</tr>';
   }).join('');
-  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
-  body.querySelectorAll('button[data-id]').forEach(function(btn){btn.addEventListener('click',function(){deleteCuentaMov(this.dataset.id,this.dataset.cuenta);});});
+  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  body.querySelectorAll('button[data-id]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      if(this.dataset.action==='edit')startEditCuenta(this.dataset.id,this.dataset.cuenta);
+      else deleteCuentaMov(this.dataset.id,this.dataset.cuenta);
+    });
+  });
 }
 
 function showTrackerForm(){
@@ -1681,11 +1789,20 @@ function renderIbath(){
       '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
       '<td style="text-align:right"><div class="td-mono">'+ars(m.valor_ars||0)+'</div></td>'+
       '<td style="text-align:right"><div class="td-mono-sm" style="color:#7c3aed">U$S '+usdEquiv.toLocaleString('es-AR')+'</div></td>'+
-      '<td><div class="action-btns"><button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="IBATH"><i class="ti ti-trash"></i></button></div></td>'+
+      '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
+      '<td><div class="action-btns">'+
+        '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="IBATH" data-action="edit"><i class="ti ti-pencil"></i></button>'+
+        '<button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="IBATH" data-action="del"><i class="ti ti-trash"></i></button>'+
+      '</div></td>'+
     '</tr>';
   }).join('');
-  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
-  body.querySelectorAll('button[data-id]').forEach(function(btn){btn.addEventListener('click',function(){deleteCuentaMov(this.dataset.id,this.dataset.cuenta);});});
+  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  body.querySelectorAll('button[data-id]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      if(this.dataset.action==='edit')startEditCuenta(this.dataset.id,this.dataset.cuenta);
+      else deleteCuentaMov(this.dataset.id,this.dataset.cuenta);
+    });
+  });
 }
 
 function showIbathForm(){
