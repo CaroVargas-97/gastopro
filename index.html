@@ -266,13 +266,16 @@ tr:hover .action-btns{opacity:1}
       <div class="nav-item" onclick="go('config')"><i class="ti ti-settings"></i>Configuración</div>
     </nav>
     <div class="tc-panel">
-      <div class="tc-label">Tipo de cambio blue</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="tc-label">Dólar blue</div>
+        <button id="tc-refresh-btn" onclick="fetchDolarBlue()" title="Actualizar cotización" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text3);font-size:13px;line-height:1;border-radius:4px" onmouseenter="this.style.color='var(--accent)'" onmouseleave="this.style.color='var(--text3)'"><i class="ti ti-refresh"></i></button>
+      </div>
       <div class="tc-row">
         <span class="tc-prefix">$</span>
         <input class="tc-inp" type="number" id="tc" value="1370" min="1" step="1" onchange="refresh()" placeholder="1370">
         <span class="tc-prefix">/USD</span>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:6px">Editá antes de cargar datos</div>
+      <div id="tc-status" style="font-size:10px;color:var(--text3);margin-top:6px">Cargando cotización…</div>
     </div>
   </aside>
 
@@ -641,7 +644,7 @@ async function showApp(){
   const email=currentUser.email||'';
   document.getElementById('user-name').textContent=email;
   document.getElementById('user-avatar').textContent=email.slice(0,2).toUpperCase();
-  await Promise.all([loadData(),loadCuentas()]);
+  await Promise.all([loadData(),loadCuentas(),fetchDolarBlue()]);
   updateSubtitle();
   renderOverview();
 }
@@ -722,6 +725,26 @@ async function deleteTransaction(id){
 
 /* HELPERS */
 function tc(){return parseFloat(document.getElementById('tc').value)||1370;}
+
+async function fetchDolarBlue(){
+  const btn=document.getElementById('tc-refresh-btn');
+  const status=document.getElementById('tc-status');
+  if(btn)btn.style.animation='spin 1s linear infinite';
+  try{
+    const r=await fetch('https://dolarapi.com/v1/dolares/blue');
+    if(!r.ok)throw new Error('sin respuesta');
+    const d=await r.json();
+    const venta=Math.round(d.venta||d.compra||1370);
+    document.getElementById('tc').value=venta;
+    refresh();
+    const hora=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+    if(status)status.innerHTML='Venta $'+venta.toLocaleString('es-AR')+' · <span style="color:var(--green)">✓ '+hora+'</span>';
+  }catch(e){
+    if(status)status.textContent='Sin conexión — editá manualmente';
+  }finally{
+    if(btn)btn.style.animation='';
+  }
+}
 function ars(v){return '$'+Math.round(v).toLocaleString('es-AR');}
 function usdFmt(v){if(!v||v<=0)return '';return 'U$S '+(v<10?v.toFixed(2):Math.round(v)).toLocaleString('es-AR');}
 function mesesActivos(){return MESES.filter(m=>data.some(t=>t.mes===m));}
