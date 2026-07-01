@@ -394,18 +394,14 @@ tr:hover .action-btns{opacity:1}
           </div>
           <button class="btn btn-accent" onclick="showInvForm()"><i class="ti ti-plus"></i> Agregar movimiento</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
           <div class="card" style="margin:0">
-            <div class="card-title" style="margin-bottom:10px">Total ARS</div>
+            <div class="card-title" style="margin-bottom:6px">Total en pesos</div>
             <div id="inv-total-ars" style="font-size:22px;font-weight:700;color:var(--text)">$0</div>
-          </div>
-          <div class="card" style="margin:0;border-left:3px solid #dc2626">
-            <div class="card-title" style="margin-bottom:6px">USD → ARS hoy</div>
-            <div id="inv-equiv-ars" style="font-size:20px;font-weight:700;color:#dc2626">$0</div>
             <div style="font-size:10px;color:var(--text3);margin-top:4px">TC: $<span id="inv-tc-show">1370</span></div>
           </div>
           <div class="card" style="margin:0">
-            <div class="card-title" style="margin-bottom:10px">Total USD</div>
+            <div class="card-title" style="margin-bottom:10px">Total en dólares</div>
             <div id="inv-total-usd" style="font-size:22px;font-weight:700;color:var(--text)">U$S 0</div>
           </div>
           <div class="card" style="margin:0">
@@ -1512,9 +1508,6 @@ function renderInv(){
   if(el1)el1.textContent=ars(totalARS);
   if(el2)el2.textContent='U$S '+Math.round(totalUSD).toLocaleString('es-AR');
   if(el3)el3.textContent=invData.length;
-  // Update equiv row
-  const equivEl=document.getElementById('inv-equiv-ars');
-  if(equivEl)equivEl.textContent=ars(Math.round(totalUSD*tc()));
   const tcShowEl=document.getElementById('inv-tc-show');
   if(tcShowEl)tcShowEl.textContent=Math.round(tc()).toLocaleString('es-AR');
   const invAnalisisEl=document.getElementById('inv-analisis');
