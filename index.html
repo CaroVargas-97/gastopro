@@ -258,8 +258,6 @@ tr:hover .action-btns{opacity:1}
       <div class="nav-group-label" style="margin-top:6px">Cuentas</div>
       <div class="nav-item" onclick="go('team')"><i class="ti ti-users"></i>Cuenta Team</div>
       <div class="nav-item" onclick="go('inversiones')"><i class="ti ti-trending-up"></i>Inversiones</div>
-      <div class="nav-item" onclick="go('tracker')"><i class="ti ti-target"></i>Tracker</div>
-      <div class="nav-item" onclick="go('ibath')"><i class="ti ti-droplet"></i>iBath</div>
       <div class="nav-group-label" style="margin-top:6px">Gestión</div>
       <div class="nav-item" onclick="go('cargar')"><i class="ti ti-upload"></i>Cargar datos</div>
       <div class="nav-item" onclick="go('historial')"><i class="ti ti-history"></i>Historial <span id="hist-badge" style="margin-left:auto;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px">0</span></div>
@@ -300,8 +298,6 @@ tr:hover .action-btns{opacity:1}
         <div class="work-grid">
           <div id="dash-team"></div>
           <div id="dash-inv"></div>
-          <div id="dash-tracker"></div>
-          <div id="dash-ibath"></div>
         </div>
       </div>
 
@@ -372,8 +368,8 @@ tr:hover .action-btns{opacity:1}
             <div class="card-title" style="margin-bottom:10px">Total ARS</div>
             <div id="team-total-ars" style="font-size:22px;font-weight:700;color:var(--text)">$0</div>
           </div>
-          <div class="card" style="margin:0;border-left:3px solid #0891b2">
-            <div class="card-title" style="margin-bottom:6px">Equivalente USD</div>
+          <div class="card" style="margin:0">
+            <div class="card-title" style="margin-bottom:10px">Equivalente USD</div>
             <div id="team-equiv-usd" style="font-size:20px;font-weight:700;color:#0891b2">U$S 0</div>
             <div style="font-size:10px;color:var(--text3);margin-top:4px">TC: $<span id="team-tc-show">1370</span></div>
           </div>
@@ -383,8 +379,21 @@ tr:hover .action-btns{opacity:1}
             <div style="font-size:12px;color:var(--text3);margin-top:4px">registrados</div>
           </div>
         </div>
-        <div id="team-analisis" style="margin-bottom:12px"></div>
+        <!-- TEAM ANÁLISIS -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div id="team-bud-header" style="font-size:12px;color:var(--text3)"></div>
+          <button class="btn" id="team-insight-btn" onclick="generarTeamInsights()"><i class="ti ti-sparkles"></i> Insights con IA</button>
+        </div>
+        <div id="team-insight-box"></div>
+        <div class="mes-grid" id="team-mes-grid"></div>
+        <div id="team-comparativa-box" style="margin-bottom:16px"></div>
+        <div class="g2">
+          <div class="card"><div class="card-head"><span class="card-title">Evolución mensual</span></div><div style="position:relative;height:210px"><canvas id="cTeamEvol"></canvas></div></div>
+          <div class="card"><div class="card-head"><span class="card-title">Proyección anual</span></div><div id="team-proj"></div></div>
+        </div>
+        <div class="card" style="margin-top:0"><div class="card-head"><span class="card-title">Heatmap por persona</span></div><div id="team-heatmap-box" style="overflow-x:auto"></div></div>
         <div id="team-form-area"></div>
+        <div id="team-mes-summary"></div>
         <div class="card" style="padding:0;overflow:hidden"><div class="tx-wrap"><div id="team-body"></div></div></div>
       </div>
 
@@ -415,44 +424,6 @@ tr:hover .action-btns{opacity:1}
         <div id="inv-analisis" style="margin-bottom:12px"></div>
         <div id="inv-form-area"></div>
         <div class="card" style="padding:0;overflow:hidden"><div class="tx-wrap"><div id="inv-body"></div></div></div>
-      </div>
-
-      <!-- TRACKER -->
-      <div class="section" id="sec-tracker">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <div>
-            <div style="font-size:14px;font-weight:700;color:var(--text)">Tracker</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Gastos del proyecto Tracker — visible para todos</div>
-          </div>
-          <button class="btn btn-accent" onclick="showTrackerForm()"><i class="ti ti-plus"></i> Agregar gasto</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-          <div class="card" style="margin:0"><div class="card-title" style="margin-bottom:10px">Total ARS</div><div id="tracker-total-ars" style="font-size:22px;font-weight:700;color:var(--text)">$0</div></div>
-          <div class="card" style="margin:0;border-left:3px solid #d97706"><div class="card-title" style="margin-bottom:6px">Equivalente USD</div><div id="tracker-equiv-usd" style="font-size:20px;font-weight:700;color:#d97706">U$S 0</div><div style="font-size:10px;color:var(--text3);margin-top:4px">TC: $<span id="tracker-tc-show">1370</span></div></div>
-          <div class="card" style="margin:0"><div class="card-title" style="margin-bottom:10px">Gastos</div><div id="tracker-count" style="font-size:22px;font-weight:700;color:var(--text)">0</div><div style="font-size:12px;color:var(--text3);margin-top:4px">registrados</div></div>
-        </div>
-        <div id="tracker-analisis" style="margin-bottom:12px"></div>
-        <div id="tracker-form-area"></div>
-        <div class="card" style="padding:0;overflow:hidden"><div class="tx-wrap"><div id="tracker-body"></div></div></div>
-      </div>
-
-      <!-- IBATH -->
-      <div class="section" id="sec-ibath">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <div>
-            <div style="font-size:14px;font-weight:700;color:var(--text)">iBath</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Gastos del proyecto iBath — visible para todos</div>
-          </div>
-          <button class="btn btn-accent" onclick="showIbathForm()"><i class="ti ti-plus"></i> Agregar gasto</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-          <div class="card" style="margin:0"><div class="card-title" style="margin-bottom:10px">Total ARS</div><div id="ibath-total-ars" style="font-size:22px;font-weight:700;color:var(--text)">$0</div></div>
-          <div class="card" style="margin:0;border-left:3px solid #7c3aed"><div class="card-title" style="margin-bottom:6px">Equivalente USD</div><div id="ibath-equiv-usd" style="font-size:20px;font-weight:700;color:#7c3aed">U$S 0</div><div style="font-size:10px;color:var(--text3);margin-top:4px">TC: $<span id="ibath-tc-show">1370</span></div></div>
-          <div class="card" style="margin:0"><div class="card-title" style="margin-bottom:10px">Gastos</div><div id="ibath-count" style="font-size:22px;font-weight:700;color:var(--text)">0</div><div style="font-size:12px;color:var(--text3);margin-top:4px">registrados</div></div>
-        </div>
-        <div id="ibath-analisis" style="margin-bottom:12px"></div>
-        <div id="ibath-form-area"></div>
-        <div class="card" style="padding:0;overflow:hidden"><div class="tx-wrap"><div id="ibath-body"></div></div></div>
       </div>
 
       <!-- CARGAR -->
@@ -594,8 +565,8 @@ const CATCOL={'DEPARTAMENTO':'#3b82f6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','A
 const CATBADGE={'DEPARTAMENTO':'b-dep','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','MOTO':'b-mot','CAJA CHICA ':'b-caj','VIAJES':'b-via','TEAM':'b-team','COMIDAS':'b-com','SUSCRIPCIONES':'b-sus','MUN':'b-mun','INVERSIONES':'b-inv'};
 const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA ':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones'};
 const CATS=['DEPARTAMENTO','TARJETAS','OTROS','AUTO','MOTO','CAJA CHICA ','VIAJES','TEAM','COMIDAS','SUSCRIPCIONES','MUN','INVERSIONES'];
-const PAGES={overview:'Dashboard',analisis:'Análisis',transacciones:'Transacciones',team:'Cuenta Team',inversiones:'Inversiones',tracker:'Tracker',ibath:'iBath',cargar:'Cargar datos',historial:'Historial',config:'Configuración'};
-const NAV_IDS=['overview','analisis','transacciones','team','inversiones','tracker','ibath','cargar','historial','config'];
+const PAGES={overview:'Dashboard',analisis:'Análisis',transacciones:'Transacciones',team:'Cuenta Team',inversiones:'Inversiones',cargar:'Cargar datos',historial:'Historial',config:'Configuración'};
+const NAV_IDS=['overview','analisis','transacciones','team','inversiones','cargar','historial','config'];
 
 const PROMPT=`Sos un extractor de gastos financieros en Argentina. Analizá el resumen de tarjeta y devolvé UN OBJETO JSON con dos campos:
 
@@ -618,8 +589,6 @@ Respondé ÚNICAMENTE con el objeto JSON, sin markdown, sin backticks, sin texto
 let data=[];
 let teamData=[];
 let invData=[];
-let trackerData=[];
-let ibathData=[];
 let historial=[];
 let charts={};
 let editingIdx=null;
@@ -703,8 +672,6 @@ async function loadCuentas(){
     if(error)throw error;
     teamData=(rows||[]).filter(r=>r.cuenta==='TEAM');
     invData=(rows||[]).filter(r=>r.cuenta==='INVERSIONES');
-    trackerData=(rows||[]).filter(r=>r.cuenta==='TRACKER');
-    ibathData=(rows||[]).filter(r=>r.cuenta==='IBATH');
   }catch(e){console.warn('cuentas error',e);}
 }
 
@@ -769,8 +736,6 @@ function go(id){
   if(id==='transacciones'){populateMesFilter();renderTx();}
   if(id==='team')renderTeam();
   if(id==='inversiones')renderInv();
-  if(id==='tracker')renderTracker();
-  if(id==='ibath')renderIbath();
   if(id==='historial')renderHistorialPage();
   if(id==='config'){
     const el=document.getElementById('cfg-email');
@@ -857,25 +822,6 @@ function renderOverview(){
     countTxt:invData.length+' movimientos'
   });
 
-  /* ── TRABAJO: TRACKER ── */
-  const trackerARS=trackerData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
-  const trackerUSD=trackerData.reduce((s,m)=>s+(parseFloat(m.valor_usd)||0),0);
-  const trackerEl=document.getElementById('dash-tracker');
-  if(trackerEl)trackerEl.innerHTML=workCard({
-    color:'#d97706',icon:'ti-target',title:'Tracker',page:'tracker',
-    arsVal:trackerARS,usdVal:trackerUSD,
-    countTxt:trackerData.length+' gastos registrados'
-  });
-
-  /* ── TRABAJO: IBATH ── */
-  const ibathARS=ibathData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
-  const ibathUSD=ibathData.reduce((s,m)=>s+(parseFloat(m.valor_usd)||0),0);
-  const ibathEl=document.getElementById('dash-ibath');
-  if(ibathEl)ibathEl.innerHTML=workCard({
-    color:'#7c3aed',icon:'ti-droplet',title:'iBath',page:'ibath',
-    arsVal:ibathARS,usdVal:ibathUSD,
-    countTxt:ibathData.length+' gastos registrados'
-  });
 }
 
 /* ANALISIS */
@@ -1345,54 +1291,6 @@ async function importParsed(enc){
 async function toB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
 
 /* TEAM */
-function buildCuentaAnalisis(data,color){
-  if(!data.length)return'';
-  const T=tc();
-  const byMes={};
-  data.forEach(function(m){const k=m.mes||m.fecha||'?';byMes[k]=(byMes[k]||0)+(parseFloat(m.valor_ars)||0);});
-  const mesEntries=Object.entries(byMes).sort(function(a,b){return MESES.indexOf(a[0])-MESES.indexOf(b[0]);});
-  const maxMes=Math.max.apply(null,mesEntries.map(function(e){return e[1];}));
-  const efTotal=data.filter(function(m){return m.metodo==='EFECTIVO';}).reduce(function(s,m){return s+(parseFloat(m.valor_ars)||0);},0);
-  const crTotal=data.filter(function(m){return m.metodo==='CREDITO';}).reduce(function(s,m){return s+(parseFloat(m.valor_ars)||0);},0);
-  const tot=efTotal+crTotal;
-  const efPct=tot>0?Math.round(efTotal/tot*100):0;
-  const crPct=100-efPct;
-  const top3=[...data].sort(function(a,b){return(b.valor_ars||0)-(a.valor_ars||0);}).slice(0,3);
-  const mesBars=mesEntries.map(function(e){
-    const pct=maxMes>0?Math.round(e[1]/maxMes*100):0;
-    return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">'+
-      '<div style="font-size:11px;color:var(--text2);width:64px;text-align:right;text-transform:capitalize;flex-shrink:0">'+e[0]+'</div>'+
-      '<div style="flex:1;background:var(--bg3);border-radius:3px;height:6px"><div style="width:'+pct+'%;background:'+color+';height:6px;border-radius:3px"></div></div>'+
-      '<div style="font-size:11px;font-weight:600;color:var(--text);width:72px;text-align:right;flex-shrink:0">'+ars(e[1])+'</div>'+
-    '</div>';
-  }).join('');
-  const methodHtml=tot>0?
-    '<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;margin-bottom:10px">'+
-      '<div style="width:'+efPct+'%;background:var(--green)"></div>'+
-      '<div style="width:'+crPct+'%;background:var(--amber)"></div>'+
-    '</div>'+
-    '<div style="display:flex;gap:16px">'+
-      '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Efectivo</div><div style="font-size:14px;font-weight:700;color:var(--green)">'+efPct+'%</div><div style="font-size:10px;color:var(--text3);margin-top:2px">'+ars(efTotal)+'</div></div>'+
-      '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Crédito</div><div style="font-size:14px;font-weight:700;color:var(--amber)">'+crPct+'%</div><div style="font-size:10px;color:var(--text3);margin-top:2px">'+ars(crTotal)+'</div></div>'+
-    '</div>':
-    '<div style="font-size:12px;color:var(--text3)">Sin datos</div>';
-  const topHtml=top3.map(function(m,i){
-    return'<div style="display:flex;align-items:center;gap:8px'+(i<top3.length-1?';margin-bottom:9px':'')+'">'+
-      '<div style="width:18px;height:18px;border-radius:50%;background:'+color+'22;color:'+color+';font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</div>'+
-      '<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(m.descripcion||'–')+'</div>'+
-      '<div style="font-size:10px;color:var(--text3);text-transform:capitalize">'+(m.mes||m.fecha||'')+'</div></div>'+
-      '<div style="font-size:12px;font-weight:700;flex-shrink:0">'+ars(m.valor_ars||0)+'</div>'+
-    '</div>';
-  }).join('');
-  return'<div class="card" style="margin-bottom:12px;border-top:2px solid '+color+'">'+
-    '<div class="card-head" style="margin-bottom:14px"><span class="card-title">Análisis</span></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">'+
-      '<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Por mes</div>'+mesBars+'</div>'+
-      '<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Método de pago</div>'+methodHtml+'</div>'+
-      '<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Top gastos</div>'+topHtml+'</div>'+
-    '</div>'+
-  '</div>';
-}
 
 function buildInvAnalisis(data){
   if(!data.length)return'';
@@ -1455,8 +1353,7 @@ function renderTeam(){
   if(el2)el2.textContent=teamData.length;
   if(el3)el3.textContent='U$S '+Math.round(total/T).toLocaleString('es-AR');
   if(el4)el4.textContent=Math.round(T).toLocaleString('es-AR');
-  const analisisEl=document.getElementById('team-analisis');
-  if(analisisEl)analisisEl.innerHTML=buildCuentaAnalisis(teamData,'#0891b2');
+  renderTeamAnalisis();
   const body=document.getElementById('team-body');
   if(!body)return;
   if(!teamData.length){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sin gastos todavía</div>';return;}
@@ -1483,6 +1380,185 @@ function renderTeam(){
       else deleteCuentaMov(this.dataset.id,this.dataset.cuenta);
     });
   });
+}
+
+function teamMesesActivos(){
+  const set=new Set(teamData.map(m=>m.mes).filter(Boolean));
+  return MESES.filter(m=>set.has(m));
+}
+
+function teamMesTotARS(mes){
+  return teamData.filter(m=>m.mes===mes).reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+}
+
+function goToTeamMes(mes){
+  const summaryEl=document.getElementById('team-mes-summary');
+  if(!summaryEl)return;
+  const T=tc();
+  const mesTxs=teamData.filter(m=>m.mes===mes);
+  const totARS=mesTxs.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+  const efARS=mesTxs.filter(m=>m.metodo==='EFECTIVO').reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+  const efPct=totARS>0?Math.round(efARS/totARS*100):0;
+  summaryEl.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid #0891b2;border-radius:var(--radius-lg);padding:14px 18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:12px">'+
+    '<div style="font-size:11px;font-weight:700;color:#0891b2;text-transform:capitalize;min-width:60px">'+mes+'</div>'+
+    '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Total ARS</div><div style="font-size:16px;font-weight:700">'+ars(totARS)+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Gastos</div><div style="font-size:16px;font-weight:700">'+mesTxs.length+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Efectivo</div><div style="font-size:14px;font-weight:700">'+efPct+'%</div></div>'+
+    '<button class="btn" style="margin-left:auto;font-size:11px" onclick="document.getElementById(\'team-mes-summary\').innerHTML=\'\'"><i class="ti ti-x"></i> Limpiar</button>'+
+  '</div>';
+  const body=document.getElementById('team-body');
+  if(body)body.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderTeamAnalisis(){
+  const mes=teamMesesActivos();
+  const grid=document.getElementById('team-mes-grid');
+  if(!mes.length){
+    if(grid)grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sin gastos del team todavía</div>';
+    return;
+  }
+  const T=tc();
+  const maxV=Math.max(...mes.map(m=>teamMesTotARS(m)));
+  if(grid)grid.innerHTML=mes.map(function(m){
+    const v=teamMesTotARS(m);
+    const usdEquiv=Math.round(v/(T||1));
+    const mesIdx=MESES.indexOf(m);
+    const prevMes=mesIdx>0?MESES.slice(0,mesIdx).reverse().find(pm=>teamData.some(t=>t.mes===pm)):null;
+    const prevV=prevMes?teamMesTotARS(prevMes):0;
+    const delta=prevV>0?((v-prevV)/prevV*100):null;
+    const deltaHtml=delta!==null?'<span class="delta-pill '+(delta>0?'delta-up':'delta-down')+'">'+(delta>0?'▲':'▼')+Math.abs(Math.round(delta))+'%</span>':'';
+    const barPct=maxV>0?Math.round(v/maxV*100):0;
+    return '<div class="mes-card" onclick="goToTeamMes(\''+m+'\')">'+
+      '<div class="mes-name" style="display:flex;justify-content:space-between;align-items:center"><span>'+m.toUpperCase()+'</span>'+deltaHtml+'</div>'+
+      '<div class="mes-ars">'+ars(v)+'</div>'+
+      '<div style="font-size:10px;color:var(--text3);margin-top:2px">U$S '+usdEquiv.toLocaleString('es-AR')+'</div>'+
+      '<div style="height:3px;background:var(--bg3);border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:3px;background:#0891b2;border-radius:2px;width:'+barPct+'%"></div></div>'+
+      '<div style="font-size:9px;color:#0891b2;margin-top:6px;font-weight:600">Ver gastos →</div>'+
+    '</div>';
+  }).join('');
+
+  // Comparativa
+  const compBox=document.getElementById('team-comparativa-box');
+  if(compBox&&mes.length>=2){
+    const m1=mes[mes.length-2],m2=mes[mes.length-1];
+    const v1=teamMesTotARS(m1),v2=teamMesTotARS(m2);
+    const isUp=v2>v1;
+    const delta=v1>0?Math.round((v2-v1)/v1*100):null;
+    const deltaStr=delta!==null?'<span style="font-size:11px;font-weight:700;color:'+(isUp?'var(--red)':'var(--green)')+'">'+( isUp?'▲':'▼')+Math.abs(delta)+'%</span>':'';
+    const personas=[...new Set(teamData.map(m=>m.creado_por).filter(Boolean))];
+    const persRows=personas.map(function(p){
+      const pv1=teamData.filter(m=>m.mes===m1&&m.creado_por===p).reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+      const pv2=teamData.filter(m=>m.mes===m2&&m.creado_por===p).reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+      const pd=pv1>0?Math.round((pv2-pv1)/pv1*100):null;
+      const pdHtml=pd!==null?'<span class="delta-pill '+(pd>0?'delta-up':'delta-down')+'">'+(pd>0?'▲':'▼')+Math.abs(pd)+'%</span>':'-';
+      return '<tr><td style="padding:6px 0;font-size:12px;color:var(--text2)">'+p+'</td>'+
+        '<td style="text-align:right;padding:6px 4px;font-size:12px">'+(pv1>0?ars(pv1):'-')+'</td>'+
+        '<td style="text-align:right;padding:6px 4px;font-size:12px">'+(pv2>0?ars(pv2):'-')+'</td>'+
+        '<td style="text-align:right;padding:6px 0">'+pdHtml+'</td></tr>';
+    }).join('');
+    compBox.innerHTML='<div class="card" style="margin-bottom:12px">'+
+      '<div class="card-head" style="margin-bottom:12px"><span class="card-title">Comparativa</span><span style="font-size:12px;color:var(--text3)">'+m1.charAt(0).toUpperCase()+m1.slice(1)+' → '+m2.charAt(0).toUpperCase()+m2.slice(1)+' '+deltaStr+'</span></div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'+
+        '<div style="background:var(--bg3);border-radius:var(--radius);padding:12px 16px">'+
+          '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:capitalize;margin-bottom:6px">'+m1+'</div>'+
+          '<div style="font-size:22px;font-weight:700">'+ars(v1)+'</div>'+
+        '</div>'+
+        '<div style="background:var(--bg3);border-radius:var(--radius);padding:12px 16px;border-left:3px solid '+(isUp?'var(--red)':'var(--green)')+'">'+
+          '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:capitalize;margin-bottom:6px">'+m2+'</div>'+
+          '<div style="font-size:22px;font-weight:700">'+ars(v2)+'</div>'+
+        '</div>'+
+      '</div>'+
+      (persRows?'<table style="width:100%;border-collapse:collapse"><thead><tr>'+
+        '<th style="text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;padding-bottom:8px">Persona</th>'+
+        '<th style="text-align:right;font-size:10px;font-weight:700;color:var(--text3);text-transform:capitalize;padding-bottom:8px">'+m1+'</th>'+
+        '<th style="text-align:right;font-size:10px;font-weight:700;color:var(--text3);text-transform:capitalize;padding-bottom:8px">'+m2+'</th>'+
+        '<th style="text-align:right;font-size:10px;font-weight:700;color:var(--text3);padding-bottom:8px">Δ</th>'+
+      '</tr></thead><tbody>'+persRows+'</tbody></table>':'')+'</div>';
+  }else if(compBox){compBox.innerHTML='';}
+
+  // Evolución chart
+  try{
+    if(charts.teamEvol)charts.teamEvol.destroy();
+    charts.teamEvol=new Chart(document.getElementById('cTeamEvol').getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:mes.map(m=>m.slice(0,3)),
+        datasets:[{
+          label:'ARS',
+          data:mes.map(m=>Math.round(teamMesTotARS(m))),
+          backgroundColor:'rgba(8,145,178,.18)',
+          borderColor:'#0891b2',
+          borderWidth:2,
+          borderRadius:4
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#a8a49e',font:{size:10},callback:v=>'$'+(v>=1000000?(v/1000000).toFixed(1)+'M':(v/1000).toFixed(0)+'k')}},x:{grid:{display:false},ticks:{color:'#a8a49e',font:{size:10}}}}}
+    });
+  }catch(e){console.warn('team chart error:',e);}
+
+  // Proyección
+  const totalARS=teamData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+  const prom=totalARS/mes.length;
+  const proyAnual=totalARS+prom*(12-mes.length);
+  const projEl=document.getElementById('team-proj');
+  if(projEl)projEl.innerHTML=
+    '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text2)">Meses registrados</span><span style="font-size:13px;font-weight:700">'+mes.length+' / 12</span></div>'+
+    '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text2)">Promedio mensual</span><span style="font-size:13px;font-weight:700">'+ars(prom)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text2)">Acumulado</span><span style="font-size:13px;font-weight:700">'+ars(totalARS)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;padding:10px 0"><span style="font-size:12px;color:var(--text2)">Proyección anual</span><span style="font-size:13px;font-weight:700;color:#0891b2">'+ars(proyAnual)+'</span></div>';
+
+  // Heatmap por persona
+  const hmEl=document.getElementById('team-heatmap-box');
+  if(hmEl&&mes.length){
+    const personas=[...new Set(teamData.map(m=>m.creado_por).filter(Boolean))];
+    const persTotals=personas.map(p=>({p,v:teamData.filter(m=>m.creado_por===p).reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0)})).sort((a,b)=>b.v-a.v);
+    const persMax=persTotals.map(({p})=>Math.max(...mes.map(m=>teamData.filter(t=>t.mes===m&&t.creado_por===p).reduce((s,t)=>s+(parseFloat(t.valor_ars)||0),0)),1));
+    const thead='<tr><td style="padding:4px 10px 4px 0;min-width:70px"></td>'+persTotals.map(({p})=>'<td style="text-align:center;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;padding:4px 3px">'+p.split('@')[0].split('.')[0]+'</td>').join('')+'</tr>';
+    const tbody=mes.map(function(m){
+      const cells=persTotals.map(function({p},i){
+        const v=teamData.filter(t=>t.mes===m&&t.creado_por===p).reduce((s,t)=>s+(parseFloat(t.valor_ars)||0),0);
+        const ratio=v/persMax[i];
+        const bg=v>0?'rgba(8,145,178,'+Math.max(0.08,ratio*.9)+')':'var(--bg3)';
+        const fg=ratio>0.55?'#fff':'var(--text)';
+        const lbl=v>0?(v>=1000000?'$'+(v/1000000).toFixed(1)+'M':'$'+(v/1000).toFixed(0)+'k'):'';
+        return '<td class="hm-cell" style="background:'+bg+';color:'+fg+';padding:0 3px">'+lbl+'</td>';
+      }).join('');
+      return '<tr><td style="font-size:11px;font-weight:600;color:var(--text2);text-transform:capitalize;padding:3px 10px 3px 0;white-space:nowrap">'+m+'</td>'+cells+'</tr>';
+    }).join('');
+    hmEl.innerHTML='<table style="width:100%;border-collapse:separate;border-spacing:3px"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody></table>';
+  }
+}
+
+async function generarTeamInsights(){
+  const mes=teamMesesActivos();
+  if(!mes.length){showToast('Sin datos del team para analizar');return;}
+  const btn=document.getElementById('team-insight-btn');
+  const box=document.getElementById('team-insight-box');
+  if(!btn||!box)return;
+  btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin .7s linear infinite"></i> Analizando...';
+  const T=tc();
+  const summary=mes.map(m=>{
+    const total=teamMesTotARS(m);
+    const personas=[...new Set(teamData.filter(t=>t.mes===m).map(t=>t.creado_por).filter(Boolean))];
+    return m+': $'+Math.round(total/1000)+'k ('+personas.join(', ')+')';
+  }).join('\n');
+  const prompt='Soy usuario argentino de una app de finanzas de equipo. Gastos del team:\n\n'+summary+'\nTC blue actual: $'+Math.round(T)+'/USD.\n\nDame exactamente 3 insights concretos y accionables sobre estos gastos del equipo. Cada uno en una línea nueva empezando con un emoji relevante. Sin títulos ni listas. Máximo 120 palabras.';
+  try{
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:350,messages:[{role:'user',content:prompt}]})});
+    const d=await res.json();
+    const text=(d.content&&d.content[0]&&d.content[0].text)||'Sin respuesta';
+    box.innerHTML='<div class="insight-wrap">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+        '<i class="ti ti-sparkles" style="color:var(--accent);font-size:14px"></i>'+
+        '<span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em">Insights Team · IA</span>'+
+        '<button class="btn" style="margin-left:auto;font-size:10px;padding:3px 8px" onclick="this.closest(\'.insight-wrap\').remove()">✕</button>'+
+      '</div>'+
+      '<div style="font-size:13px;color:var(--text);line-height:1.7">'+text.replace(/\n/g,'<br>')+'</div>'+
+    '</div>';
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:12px;padding:10px">Error: '+e.message+'</div>';
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Insights con IA';
 }
 
 function showTeamForm(){
@@ -1608,8 +1684,7 @@ function startEditCuenta(id,cuenta){
   let dataArr,renderFn,bodyId;
   if(cuenta==='TEAM'){dataArr=teamData;renderFn=renderTeam;bodyId='team-body';}
   else if(cuenta==='INVERSIONES'){dataArr=invData;renderFn=renderInv;bodyId='inv-body';}
-  else if(cuenta==='TRACKER'){dataArr=trackerData;renderFn=renderTracker;bodyId='tracker-body';}
-  else{dataArr=ibathData;renderFn=renderIbath;bodyId='ibath-body';}
+  else{return;}
   const m=dataArr.find(function(r){return String(r.id)===String(id);});
   if(!m)return;
   const T=tc();
@@ -1655,8 +1730,7 @@ async function saveEditCuenta(id,cuenta,oldTc){
   let dataArr,renderFn;
   if(cuenta==='TEAM'){dataArr=teamData;renderFn=renderTeam;}
   else if(cuenta==='INVERSIONES'){dataArr=invData;renderFn=renderInv;}
-  else if(cuenta==='TRACKER'){dataArr=trackerData;renderFn=renderTracker;}
-  else{dataArr=ibathData;renderFn=renderIbath;}
+  else{return;}
   const T=tc();
   let updates;
   if(cuenta==='INVERSIONES'){
@@ -1693,165 +1767,9 @@ async function deleteCuentaMov(id,cuenta){
     await sb.from('cuentas_movimientos').delete().eq('id',id);
     if(cuenta==='TEAM')teamData=teamData.filter(function(m){return m.id!==id;});
     else if(cuenta==='INVERSIONES')invData=invData.filter(function(m){return m.id!==id;});
-    else if(cuenta==='TRACKER')trackerData=trackerData.filter(function(m){return m.id!==id;});
-    else if(cuenta==='IBATH')ibathData=ibathData.filter(function(m){return m.id!==id;});
     setSyncStatus('ok');showToast('Eliminado');
     if(cuenta==='TEAM')renderTeam();
     else if(cuenta==='INVERSIONES')renderInv();
-    else if(cuenta==='TRACKER')renderTracker();
-    else if(cuenta==='IBATH')renderIbath();
-  }catch(e){setSyncStatus('error');showToast('Error: '+e.message);}
-}
-
-/* TRACKER */
-function renderTracker(){
-  const total=trackerData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
-  const T=tc();
-  const el1=document.getElementById('tracker-total-ars');
-  const el2=document.getElementById('tracker-count');
-  const el3=document.getElementById('tracker-equiv-usd');
-  const el4=document.getElementById('tracker-tc-show');
-  if(el1)el1.textContent=ars(total);
-  if(el2)el2.textContent=trackerData.length;
-  if(el3)el3.textContent='U$S '+Math.round(total/T).toLocaleString('es-AR');
-  if(el4)el4.textContent=Math.round(T).toLocaleString('es-AR');
-  const trAnalisisEl=document.getElementById('tracker-analisis');
-  if(trAnalisisEl)trAnalisisEl.innerHTML=buildCuentaAnalisis(trackerData,'#d97706');
-  const body=document.getElementById('tracker-body');
-  if(!body)return;
-  if(!trackerData.length){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sin gastos todavía</div>';return;}
-  const rows=trackerData.map(function(m){
-    const usdEquiv=Math.round((m.valor_ars||0)/(m.tc||T));
-    return '<tr>'+
-      '<td style="font-size:11px;color:var(--text3);font-weight:600;text-transform:capitalize">'+(m.mes||m.fecha||'')+'</td>'+
-      '<td class="td-desc">'+(m.descripcion||'')+'</td>'+
-      '<td><span class="badge '+(m.metodo==='EFECTIVO'?'b-ef':'b-cr')+'">'+(m.metodo==='EFECTIVO'?'Efectivo':'Crédito')+'</span></td>'+
-      '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
-      '<td style="text-align:right"><div class="td-mono">'+ars(m.valor_ars||0)+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm" style="color:#d97706">U$S '+usdEquiv.toLocaleString('es-AR')+'</div></td>'+
-      '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
-      '<td><div class="action-btns">'+
-        '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="TRACKER" data-action="edit"><i class="ti ti-pencil"></i></button>'+
-        '<button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="TRACKER" data-action="del"><i class="ti ti-trash"></i></button>'+
-      '</div></td>'+
-    '</tr>';
-  }).join('');
-  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
-  body.querySelectorAll('button[data-id]').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      if(this.dataset.action==='edit')startEditCuenta(this.dataset.id,this.dataset.cuenta);
-      else deleteCuentaMov(this.dataset.id,this.dataset.cuenta);
-    });
-  });
-}
-
-function showTrackerForm(){
-  const meses_opts=MESES.map(function(m){return '<option value="'+m+'">'+m.charAt(0).toUpperCase()+m.slice(1)+'</option>';}).join('');
-  const div=document.createElement('div');div.className='card';div.style.marginBottom='12px';
-  div.innerHTML=
-    '<div class="card-head"><span class="card-title">Nuevo gasto Tracker</span><button class="btn" id="trf-close"><i class="ti ti-x"></i></button></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Mes</label><select class="finput" id="trf-mes"><option value="">— mes —</option>'+meses_opts+'</select></div>'+
-      '<div class="ff"><label class="flabel">Método</label><select class="finput" id="trf-met"><option value="EFECTIVO">Efectivo</option><option value="CREDITO">Crédito</option></select></div>'+
-      '<div class="ff"><label class="flabel">Monto ARS</label><input class="finput" type="number" id="trf-ars" placeholder="0"></div>'+
-    '</div>'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="finput" type="text" id="trf-desc" placeholder="Descripción del gasto..."></div>'+
-    '<button class="btn btn-accent" style="width:100%;padding:10px;justify-content:center" id="trf-save"><i class="ti ti-check"></i> Guardar gasto</button>';
-  const area=document.getElementById('tracker-form-area');
-  area.innerHTML='';area.appendChild(div);
-  document.getElementById('trf-close').addEventListener('click',function(){area.innerHTML='';});
-  document.getElementById('trf-save').addEventListener('click',saveTrackerGasto);
-}
-
-async function saveTrackerGasto(){
-  const mes=document.getElementById('trf-mes').value;
-  const met=document.getElementById('trf-met').value;
-  const valARS=parseFloat(document.getElementById('trf-ars').value)||0;
-  const desc=document.getElementById('trf-desc').value.trim();
-  if(!mes||!desc||!valARS){showToast('Completá todos los campos');return;}
-  const T=tc();setSyncStatus('saving');
-  try{
-    const row={cuenta:'TRACKER',tipo:'GASTO',mes,metodo:met,descripcion:desc.toUpperCase(),valor_ars:valARS,valor_usd:parseFloat((valARS/T).toFixed(2)),tc:T,fecha:new Date().toISOString().split('T')[0],creado_por:currentUser.email.split('@')[0]};
-    const res=await sb.from('cuentas_movimientos').insert(row).select().single();
-    if(res.error)throw res.error;
-    trackerData.unshift(res.data);setSyncStatus('ok');showToast('Gasto de Tracker guardado');
-    document.getElementById('tracker-form-area').innerHTML='';renderTracker();
-  }catch(e){setSyncStatus('error');showToast('Error: '+e.message);}
-}
-
-/* IBATH */
-function renderIbath(){
-  const total=ibathData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
-  const T=tc();
-  const el1=document.getElementById('ibath-total-ars');
-  const el2=document.getElementById('ibath-count');
-  const el3=document.getElementById('ibath-equiv-usd');
-  const el4=document.getElementById('ibath-tc-show');
-  if(el1)el1.textContent=ars(total);
-  if(el2)el2.textContent=ibathData.length;
-  if(el3)el3.textContent='U$S '+Math.round(total/T).toLocaleString('es-AR');
-  if(el4)el4.textContent=Math.round(T).toLocaleString('es-AR');
-  const ibAnalisisEl=document.getElementById('ibath-analisis');
-  if(ibAnalisisEl)ibAnalisisEl.innerHTML=buildCuentaAnalisis(ibathData,'#7c3aed');
-  const body=document.getElementById('ibath-body');
-  if(!body)return;
-  if(!ibathData.length){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sin gastos todavía</div>';return;}
-  const rows=ibathData.map(function(m){
-    const usdEquiv=Math.round((m.valor_ars||0)/(m.tc||T));
-    return '<tr>'+
-      '<td style="font-size:11px;color:var(--text3);font-weight:600;text-transform:capitalize">'+(m.mes||m.fecha||'')+'</td>'+
-      '<td class="td-desc">'+(m.descripcion||'')+'</td>'+
-      '<td><span class="badge '+(m.metodo==='EFECTIVO'?'b-ef':'b-cr')+'">'+(m.metodo==='EFECTIVO'?'Efectivo':'Crédito')+'</span></td>'+
-      '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
-      '<td style="text-align:right"><div class="td-mono">'+ars(m.valor_ars||0)+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm" style="color:#7c3aed">U$S '+usdEquiv.toLocaleString('es-AR')+'</div></td>'+
-      '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
-      '<td><div class="action-btns">'+
-        '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="IBATH" data-action="edit"><i class="ti ti-pencil"></i></button>'+
-        '<button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="IBATH" data-action="del"><i class="ti ti-trash"></i></button>'+
-      '</div></td>'+
-    '</tr>';
-  }).join('');
-  body.innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Método</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">= USD</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
-  body.querySelectorAll('button[data-id]').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      if(this.dataset.action==='edit')startEditCuenta(this.dataset.id,this.dataset.cuenta);
-      else deleteCuentaMov(this.dataset.id,this.dataset.cuenta);
-    });
-  });
-}
-
-function showIbathForm(){
-  const meses_opts=MESES.map(function(m){return '<option value="'+m+'">'+m.charAt(0).toUpperCase()+m.slice(1)+'</option>';}).join('');
-  const div=document.createElement('div');div.className='card';div.style.marginBottom='12px';
-  div.innerHTML=
-    '<div class="card-head"><span class="card-title">Nuevo gasto iBath</span><button class="btn" id="ibf-close"><i class="ti ti-x"></i></button></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Mes</label><select class="finput" id="ibf-mes"><option value="">— mes —</option>'+meses_opts+'</select></div>'+
-      '<div class="ff"><label class="flabel">Método</label><select class="finput" id="ibf-met"><option value="EFECTIVO">Efectivo</option><option value="CREDITO">Crédito</option></select></div>'+
-      '<div class="ff"><label class="flabel">Monto ARS</label><input class="finput" type="number" id="ibf-ars" placeholder="0"></div>'+
-    '</div>'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="finput" type="text" id="ibf-desc" placeholder="Descripción del gasto..."></div>'+
-    '<button class="btn btn-accent" style="width:100%;padding:10px;justify-content:center" id="ibf-save"><i class="ti ti-check"></i> Guardar gasto</button>';
-  const area=document.getElementById('ibath-form-area');
-  area.innerHTML='';area.appendChild(div);
-  document.getElementById('ibf-close').addEventListener('click',function(){area.innerHTML='';});
-  document.getElementById('ibf-save').addEventListener('click',saveIbathGasto);
-}
-
-async function saveIbathGasto(){
-  const mes=document.getElementById('ibf-mes').value;
-  const met=document.getElementById('ibf-met').value;
-  const valARS=parseFloat(document.getElementById('ibf-ars').value)||0;
-  const desc=document.getElementById('ibf-desc').value.trim();
-  if(!mes||!desc||!valARS){showToast('Completá todos los campos');return;}
-  const T=tc();setSyncStatus('saving');
-  try{
-    const row={cuenta:'IBATH',tipo:'GASTO',mes,metodo:met,descripcion:desc.toUpperCase(),valor_ars:valARS,valor_usd:parseFloat((valARS/T).toFixed(2)),tc:T,fecha:new Date().toISOString().split('T')[0],creado_por:currentUser.email.split('@')[0]};
-    const res=await sb.from('cuentas_movimientos').insert(row).select().single();
-    if(res.error)throw res.error;
-    ibathData.unshift(res.data);setSyncStatus('ok');showToast('Gasto de iBath guardado');
-    document.getElementById('ibath-form-area').innerHTML='';renderIbath();
   }catch(e){setSyncStatus('error');showToast('Error: '+e.message);}
 }
 
