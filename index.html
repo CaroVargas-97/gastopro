@@ -20,7 +20,17 @@
   --radius:10px;--radius-sm:7px;--radius-lg:14px;
   --font:'Inter',sans-serif;
 }
-html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh;transition:background .2s,color .2s}
+body.dark{
+  --bg:#111110;--bg2:#1c1b19;--bg3:#252422;
+  --border:#2d2c2a;--border2:#3a3936;
+  --text:#f0ede8;--text2:#a8a49e;--text3:#5e5c59;
+  --accent-light:rgba(91,78,255,.18);
+  --green-bg:rgba(22,163,74,.15);--red-bg:rgba(220,38,38,.15);--amber-bg:rgba(217,119,6,.15);
+  --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.4);
+}
+body.dark tr:hover td{background:var(--bg3)}
+body.dark .login-card{background:var(--bg2)}
 /* LOGIN */
 .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center}
 .login-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px 32px;width:100%;max-width:380px;box-shadow:var(--shadow-md)}
@@ -263,18 +273,7 @@ tr:hover .action-btns{opacity:1}
       <div class="nav-item" onclick="go('historial')"><i class="ti ti-history"></i>Historial <span id="hist-badge" style="margin-left:auto;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px">0</span></div>
       <div class="nav-item" onclick="go('config')"><i class="ti ti-settings"></i>Configuración</div>
     </nav>
-    <div class="tc-panel">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="tc-label">Dólar blue</div>
-        <button id="tc-refresh-btn" onclick="fetchDolarBlue()" title="Actualizar cotización" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text3);font-size:13px;line-height:1;border-radius:4px" onmouseenter="this.style.color='var(--accent)'" onmouseleave="this.style.color='var(--text3)'"><i class="ti ti-refresh"></i></button>
-      </div>
-      <div class="tc-row">
-        <span class="tc-prefix">$</span>
-        <input class="tc-inp" type="number" id="tc" value="1370" min="1" step="1" onchange="refresh()" placeholder="1370">
-        <span class="tc-prefix">/USD</span>
-      </div>
-      <div id="tc-status" style="font-size:10px;color:var(--text3);margin-top:6px">Cargando cotización…</div>
-    </div>
+    <input type="number" id="tc" value="1370" style="display:none" onchange="refresh()">
   </aside>
 
   <main class="main">
@@ -284,6 +283,12 @@ tr:hover .action-btns{opacity:1}
         <div class="page-sub" id="pg-sub">Cargando...</div>
       </div>
       <div class="topbar-btns">
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm)">
+          <span style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Blue</span>
+          <span id="tc-topbar" style="font-size:12px;font-weight:700;color:var(--text)">$1.370</span>
+          <button onclick="fetchDolarBlue()" title="Actualizar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0;font-size:12px;line-height:1;display:flex;align-items:center" id="tc-refresh-btn"><i class="ti ti-refresh"></i></button>
+        </div>
+        <button class="btn" onclick="toggleTheme()" id="theme-btn" title="Cambiar tema"><i class="ti ti-moon" id="theme-icon"></i></button>
         <button class="btn" onclick="exportCSV()"><i class="ti ti-download" style="font-size:13px"></i>Exportar CSV</button>
         <button class="btn btn-accent" onclick="go('cargar')"><i class="ti ti-plus" style="font-size:13px"></i>Agregar</button>
       </div>
@@ -596,6 +601,7 @@ let currentUser=null;
 
 /* AUTH */
 async function init(){
+  applyTheme();
   const {data:{session}}=await sb.auth.getSession();
   if(session){currentUser=session.user;await showApp();}
   else showLogin();
@@ -693,6 +699,17 @@ async function deleteTransaction(id){
 /* HELPERS */
 function tc(){return parseFloat(document.getElementById('tc').value)||1370;}
 
+function toggleTheme(){
+  const dark=document.body.classList.toggle('dark');
+  try{localStorage.setItem('gp_theme',dark?'dark':'light');}catch(e){}
+  const icon=document.getElementById('theme-icon');
+  if(icon)icon.className=dark?'ti ti-sun':'ti ti-moon';
+}
+function applyTheme(){
+  let saved='light';try{saved=localStorage.getItem('gp_theme')||'light';}catch(e){}
+  if(saved==='dark'){document.body.classList.add('dark');const icon=document.getElementById('theme-icon');if(icon)icon.className='ti ti-sun';}
+}
+
 async function fetchDolarBlue(){
   const btn=document.getElementById('tc-refresh-btn');
   const status=document.getElementById('tc-status');
@@ -704,8 +721,8 @@ async function fetchDolarBlue(){
     const venta=Math.round(d.venta||d.compra||1370);
     document.getElementById('tc').value=venta;
     refresh();
-    const hora=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-    if(status)status.innerHTML='Venta $'+venta.toLocaleString('es-AR')+' · <span style="color:var(--green)">✓ '+hora+'</span>';
+    const topbar=document.getElementById('tc-topbar');
+    if(topbar)topbar.textContent='$'+venta.toLocaleString('es-AR');
   }catch(e){
     if(status)status.textContent='Sin conexión — editá manualmente';
   }finally{
