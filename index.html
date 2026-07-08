@@ -1273,10 +1273,25 @@ async function handleFile(file){
         '<input type="number" id="edit-total-usd" value="0" style="font-size:13px;font-weight:700;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:3px 8px;width:100px;font-family:var(--font)">'+
         '<span style="font-size:12px;color:var(--text2)">USD</span>'+
       '</div>')+
+      (function(){
+        const dupes=parsed.filter(t=>{
+          const va=parseFloat(t.valor_ars||0);
+          const tMes=(t.mes||mes||'').toLowerCase();
+          return data.some(d=>d.mes===tMes&&Math.abs(d.valor-va)<1&&va>0&&(
+            d.desc.includes((t.desc||'').toUpperCase().slice(0,6))||
+            Math.abs(d.valor-va)<1
+          ));
+        }).length;
+        return dupes>0?'<div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--amber-bg);border:1px solid var(--amber);border-radius:var(--radius-sm);margin-bottom:10px;font-size:12px;color:var(--amber)"><i class="ti ti-alert-triangle"></i> <strong>'+dupes+' posible'+(dupes>1?'s duplicados':'s duplicado')+'</strong> — revisá los marcados antes de importar</div>':'';
+      })()+
       parsed.slice(0,6).map(t=>{
         const va=parseFloat(t.valor_ars||0);const vu=parseFloat(t.valor_usd||0);
         const display=vu>0&&va===0?'U$S '+vu.toLocaleString('es-AR'):ars(va);
-        return '<div class="parsed-row"><span class="pr-desc">'+(t.desc||'Sin descripción')+'</span><span class="badge '+(CATBADGE[t.cat||'OTROS']||'b-ot')+'" style="font-size:9px">'+(CATLAB[t.cat||'OTROS']||'Otros')+'</span><span class="pr-amt">'+display+'</span></div>';
+        const tMes=(t.mes||mes||'').toLowerCase();
+        const isDupe=va>0&&data.some(d=>d.mes===tMes&&Math.abs(d.valor-va)<1);
+        const dupeTag=isDupe?'<span style="font-size:9px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber);border-radius:4px;padding:1px 5px;flex-shrink:0">posible dup.</span>':'';
+        const rowStyle=isDupe?'background:var(--amber-bg);border-radius:6px;padding:8px 6px;margin:0 -6px;border-bottom:none':'';
+        return '<div class="parsed-row" style="'+rowStyle+'"><span class="pr-desc">'+(t.desc||'Sin descripción')+'</span><span class="badge '+(CATBADGE[t.cat||'OTROS']||'b-ot')+'" style="font-size:9px">'+(CATLAB[t.cat||'OTROS']||'Otros')+'</span>'+dupeTag+'<span class="pr-amt">'+display+'</span></div>';
       }).join('')+
       (parsed.length>6?'<div style="font-size:11px;color:var(--text3);padding:8px 0">+ '+(parsed.length-6)+' más...</div>':'')+
       '<button class="btn btn-accent" style="width:100%;margin-top:12px;padding:9px;justify-content:center" onclick="importParsed(\''+enc+'\')">'+
