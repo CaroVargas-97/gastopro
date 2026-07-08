@@ -1111,6 +1111,7 @@ function startEdit(di){
   tr.innerHTML='<td><select class="edit-sel" id="e-mes" style="width:90px">'+mesopts+'</select></td>'+
     '<td><input class="edit-inp" id="e-desc" value="'+t.desc+'" style="min-width:140px"></td>'+
     '<td><select class="edit-sel" id="e-cat">'+catopts+'</select></td>'+
+    '<td><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
     '<td><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option></select></td>'+
     '<td style="text-align:right"><input class="edit-inp" id="e-val" value="'+t.valor+'" type="number" style="width:100px;text-align:right"></td>'+
     '<td style="text-align:right;font-size:11px;color:var(--text3)">'+usdFmt(t.valor/T)+'</td>'+
@@ -1127,10 +1128,11 @@ async function saveRow(di){
   const mes=document.getElementById('e-mes').value;
   const desc=document.getElementById('e-desc').value.trim().toUpperCase();
   const cat=document.getElementById('e-cat').value;
+  const fuente=document.getElementById('e-fuente').value.trim();
   const met=document.getElementById('e-met').value;
   const val=parseFloat(document.getElementById('e-val').value);
   if(!desc||!val){showToast('Completá todos los campos');return;}
-  data[di]={...data[di],mes,desc,cat,metodo:met,valor:val,usd:val/tc()};
+  data[di]={...data[di],mes,desc,cat,fuente,metodo:met,valor:val,usd:val/tc()};
   await saveTransaction(data[di]);
   editingIdx=null;renderTx();showToast('Cambios guardados');
 }
