@@ -249,7 +249,7 @@ async function loadHistTeam(){
   if(!box)return;
   try{
     const {data,error}=await sb.from('cuentas_movimientos')
-      .select('descripcion,valor_ars,mes,fuente,creado_por,created_at')
+      .select('descripcion,valor_ars,mes,creado_por,metodo,created_at')
       .eq('cuenta','TEAM')
       .order('created_at',{ascending:false}).limit(8);
     if(error)throw error;
@@ -302,7 +302,6 @@ function formTeam(){
       '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="t-val" inputmode="numeric" placeholder="0"></div>'+
       '<div class="ff"><label class="flabel">Método</label><select class="minput" id="t-met"><option value="CREDITO">Crédito</option><option value="EFECTIVO">Efectivo</option></select></div>'+
     '</div>'+
-    '<div class="ff" style="margin-bottom:16px"><label class="flabel">Fuente (tarjeta)</label><input class="minput" type="text" id="t-fuente" placeholder="AMEX, BBVA..."></div>'+
     '<button class="btn-save" onclick="saveTeam()">✓ Guardar gasto</button>'+
   '</div>'+
   '<div class="hist-title">Últimos cargados</div>'+
@@ -337,15 +336,14 @@ async function saveTeam(){
   const desc=document.getElementById('t-desc').value.trim();
   const val=parseFloat(document.getElementById('t-val').value);
   const met=document.getElementById('t-met').value;
-  const fuente=document.getElementById('t-fuente').value.trim();
   if(!desc||!val){showToast('Completá descripción y monto');return;}
   const btn=document.querySelector('.btn-save');
   btn.disabled=true;btn.textContent='Guardando...';
   try{
     await sb.from('cuentas_movimientos').insert({
       cuenta:'TEAM',tipo:'GASTO',descripcion:desc.toUpperCase(),
-      valor_ars:val,valor_usd:val/tcVal,tc:tcVal,
-      mes,metodo:met,fuente,
+      valor_ars:val,valor_usd:parseFloat((val/tcVal).toFixed(2)),tc:tcVal,
+      mes,metodo:met,fecha:new Date().toISOString().split('T')[0],
       creado_por:currentUser.email.split('@')[0]
     });
     showToast('✓ Gasto del team guardado');
