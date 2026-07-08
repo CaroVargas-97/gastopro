@@ -75,12 +75,17 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .nav-tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav-tab.active{color:var(--accent)}
 
-/* SUCCESS STATE */
-.success-msg{text-align:center;padding:24px 16px;display:none}
-.success-msg .check-circle{width:56px;height:56px;border-radius:50%;background:#f0fdf4;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;color:var(--green)}
-.success-msg h3{font-size:17px;font-weight:700;margin-bottom:6px}
-.success-msg p{font-size:13px;color:var(--text2);margin-bottom:20px}
-.btn-otro{height:46px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;padding:0 24px}
+/* HISTORIAL */
+.hist-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 10px}
+.hist-list{display:flex;flex-direction:column;gap:8px}
+.hist-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.hist-icon{width:32px;height:32px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.hist-info{flex:1;min-width:0}
+.hist-desc{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.hist-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.hist-amt{font-size:13px;font-weight:700;color:var(--text);flex-shrink:0}
+.hist-empty{font-size:13px;color:var(--text3);text-align:center;padding:16px 0}
+.hist-loading{font-size:12px;color:var(--text3);text-align:center;padding:12px 0}
 </style>
 </head>
 <body>
@@ -209,9 +214,74 @@ function goTab(tab,btn){
 
 function renderTab(tab){
   const el=document.getElementById('main-content');
-  if(tab==='vida') el.innerHTML=formVida();
-  else if(tab==='team') el.innerHTML=formTeam();
-  else el.innerHTML=formInv();
+  if(tab==='vida'){el.innerHTML=formVida();loadHistVida();}
+  else if(tab==='team'){el.innerHTML=formTeam();loadHistTeam();}
+  else{el.innerHTML=formInv();loadHistInv();}
+}
+
+function arsF(v){return'$'+Math.round(v).toLocaleString('es-AR');}
+
+function histItem(icon,desc,sub,amt){
+  return'<div class="hist-item">'+
+    '<div class="hist-icon">'+icon+'</div>'+
+    '<div class="hist-info">'+
+      '<div class="hist-desc">'+desc+'</div>'+
+      '<div class="hist-sub">'+sub+'</div>'+
+    '</div>'+
+    '<div class="hist-amt">'+amt+'</div>'+
+  '</div>';
+}
+
+async function loadHistVida(){
+  const box=document.getElementById('hist-vida');
+  if(!box)return;
+  try{
+    const {data,error}=await sb.from('transacciones')
+      .select('descripcion,valor,mes,metodo,fuente,cat,created_at')
+      .order('created_at',{ascending:false}).limit(8);
+    if(error)throw error;
+    if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos cargados aún</div>';return;}
+    box.innerHTML=data.map(r=>{
+      const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
+      const sub=(r.mes||'')+' · '+(r.fuente||r.metodo||'');
+      return histItem(metIcon,r.descripcion||'–',sub,arsF(r.valor));
+    }).join('');
+  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
+}
+
+async function loadHistTeam(){
+  const box=document.getElementById('hist-team');
+  if(!box)return;
+  try{
+    const {data,error}=await sb.from('cuentas_movimientos')
+      .select('descripcion,valor_ars,mes,fuente,creado_por,created_at')
+      .eq('cuenta','TEAM')
+      .order('created_at',{ascending:false}).limit(8);
+    if(error)throw error;
+    if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos del team cargados aún</div>';return;}
+    box.innerHTML=data.map(r=>{
+      const sub=(r.mes||'')+' · '+(r.creado_por||'');
+      return histItem('👥',r.descripcion||'–',sub,arsF(r.valor_ars));
+    }).join('');
+  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
+}
+
+async function loadHistInv(){
+  const box=document.getElementById('hist-inv');
+  if(!box)return;
+  try{
+    const {data,error}=await sb.from('cuentas_movimientos')
+      .select('descripcion,valor_ars,valor_usd,fecha,creado_por,created_at')
+      .eq('cuenta','INVERSIONES')
+      .order('created_at',{ascending:false}).limit(8);
+    if(error)throw error;
+    if(!data.length){box.innerHTML='<div class="hist-empty">Sin movimientos cargados aún</div>';return;}
+    box.innerHTML=data.map(r=>{
+      const amt=r.valor_usd>0?'U$S '+Math.round(r.valor_usd).toLocaleString('es-AR'):arsF(r.valor_ars);
+      const sub=(r.fecha||'')+' · '+(r.creado_por||'');
+      return histItem('📈',r.descripcion||'–',sub,amt);
+    }).join('');
+  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
 
 function mesOpts(selected){
@@ -236,7 +306,9 @@ function formVida(){
     '</div>'+
     '<div class="ff" style="margin-bottom:16px"><label class="flabel">Fuente (tarjeta)</label><input class="minput" type="text" id="v-fuente" placeholder="AMEX, BBVA..."></div>'+
     '<button class="btn-save" onclick="saveVida()">✓ Guardar gasto</button>'+
-  '</div>';
+  '</div>'+
+  '<div class="hist-title">Últimos cargados</div>'+
+  '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
 }
 
 function formTeam(){
@@ -254,7 +326,9 @@ function formTeam(){
     '</div>'+
     '<div class="ff" style="margin-bottom:16px"><label class="flabel">Fuente (tarjeta)</label><input class="minput" type="text" id="t-fuente" placeholder="AMEX, BBVA..."></div>'+
     '<button class="btn-save" onclick="saveTeam()">✓ Guardar gasto</button>'+
-  '</div>';
+  '</div>'+
+  '<div class="hist-title">Últimos cargados</div>'+
+  '<div class="hist-list" id="hist-team"><div class="hist-loading">Cargando...</div></div>';
 }
 
 function formInv(){
@@ -271,7 +345,9 @@ function formInv(){
       '<div class="ff"><label class="flabel">Monto USD</label><input class="minput" type="number" id="i-usd" inputmode="decimal" placeholder="0"></div>'+
     '</div>'+
     '<button class="btn-save" onclick="saveInv()">✓ Guardar movimiento</button>'+
-  '</div>';
+  '</div>'+
+  '<div class="hist-title">Últimos movimientos</div>'+
+  '<div class="hist-list" id="hist-inv"><div class="hist-loading">Cargando...</div></div>';
 }
 
 async function saveVida(){
@@ -291,6 +367,7 @@ async function saveVida(){
     });
     showToast('✓ Gasto guardado');
     renderTab('vida');
+    loadHistVida();
   }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar gasto';}
 }
 
@@ -313,6 +390,7 @@ async function saveTeam(){
     });
     showToast('✓ Gasto del team guardado');
     renderTab('team');
+    loadHistTeam();
   }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar gasto';}
 }
 
@@ -333,6 +411,7 @@ async function saveInv(){
     });
     showToast('✓ Movimiento guardado');
     renderTab('inv');
+    loadHistInv();
   }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar movimiento';}
 }
 
