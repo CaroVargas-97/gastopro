@@ -316,13 +316,13 @@ tr:hover .action-btns{opacity:1}
 
       <!-- DASHBOARD -->
       <div class="section active" id="sec-overview">
+        <div id="dash-total" style="margin-bottom:16px"></div>
         <div class="dash-section-lbl">Personal</div>
         <div id="dash-vida" style="margin-bottom:16px"></div>
         <div class="dash-section-lbl">Trabajo</div>
-        <div class="work-grid">
-          <div id="dash-team"></div>
-          <div id="dash-inv"></div>
-        </div>
+        <div id="dash-team" style="margin-bottom:16px"></div>
+        <div class="dash-section-lbl">Inversión · Departamento en pozo</div>
+        <div id="dash-inv"></div>
       </div>
 
       <!-- ANALISIS -->
@@ -804,23 +804,48 @@ function workCard({color,icon,title,page,arsVal,usdVal,countTxt}){
 
 function renderOverview(){
   const T=tc();
+  const mes=mesesActivos();
+
+  /* ── TOTAL GENERAL ── */
+  const totalEl=document.getElementById('dash-total');
+  if(totalEl){
+    const vidaARS=data.reduce((s,t)=>s+t.valor,0);
+    const teamARS=teamData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+    const invARS=invData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+    const invUSD=invData.reduce((s,m)=>s+(parseFloat(m.valor_usd)||0),0);
+    const totalARS=vidaARS+teamARS+invARS+(invUSD*T);
+    const totalUSD=totalARS/T;
+    totalEl.innerHTML=(vidaARS||teamARS||invARS)?
+      '<div style="padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:4px">'+
+        '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Total general'+(mes.length?(' · '+(mes[0]===mes[mes.length-1]?mes[0]:mes[0]+' – '+mes[mes.length-1])):'')+'</div>'+
+        '<div style="display:flex;align-items:baseline;gap:10px">'+
+          '<span style="font-size:30px;font-weight:700;letter-spacing:-.5px;color:var(--text)">'+ars(totalARS)+'</span>'+
+          '<span style="font-size:13px;color:var(--text3)">'+usdFmt(totalUSD)+'</span>'+
+        '</div>'+
+      '</div>':'';
+  }
 
   /* ── PERSONAL: GASTOS VIDA ── */
   const vidaEl=document.getElementById('dash-vida');
   if(vidaEl){
     const totalARS=data.reduce((s,t)=>s+t.valor,0);
     const totalUSD=data.reduce((s,t)=>s+(t.usd>0?t.usd:t.valor/T),0);
-    const mes=mesesActivos();
     const prom=mes.length?totalARS/mes.length:0;
     const ef=data.filter(t=>t.metodo==='EFECTIVO').reduce((s,t)=>s+t.valor,0);
     const ultMes=mes.length?mesTotARS(mes[mes.length-1]):0;
     const antMes=mes.length>1?mesTotARS(mes[mes.length-2]):0;
     const cambio=antMes?((ultMes-antMes)/antMes*100):0;
+    const maxV=mes.length?Math.max.apply(null,mes.map(m=>mesTotARS(m))):1;
+    const miniBars=mes.slice(-7).map(function(m,i,arr){
+      const v=mesTotARS(m);const pct=maxV>0?Math.round(v/maxV*100):0;
+      const isLast=i===arr.length-1;
+      return'<div style="flex:1;height:'+pct+'%;background:'+(isLast?'#5b4eff':'#c4c0f9')+';border-radius:2px 2px 0 0"></div>';
+    }).join('');
     vidaEl.innerHTML=totalARS
-      ?'<div class="vida-card">'+
+      ?'<div class="vida-card" style="border-left:2px solid #5b4eff;border-radius:0 var(--radius) var(--radius) 0">'+
           '<div class="dash-head">'+
             '<div class="dash-title" style="color:#5b4eff"><i class="ti ti-home"></i> Gastos vida</div>'+
-            '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="go(\'transacciones\')">Ver detalle →</button>'+
+            '<div style="display:flex;align-items:flex-end;gap:3px;height:36px">'+miniBars+'</div>'+
           '</div>'+
           '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:4px">'+
             '<span style="font-size:26px;font-weight:700;letter-spacing:-.5px">'+ars(totalARS)+'</span>'+
@@ -838,23 +863,70 @@ function renderOverview(){
 
   /* ── TRABAJO: TEAM ── */
   const teamTotal=teamData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
+  const teamMeses=MESES.filter(m=>teamData.some(t=>t.mes===m));
+  const teamUltMes=teamMeses.length?teamData.filter(t=>t.mes===teamMeses[teamMeses.length-1]).reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0):0;
+  const teamProm=teamMeses.length?teamTotal/teamMeses.length:0;
   const teamEl=document.getElementById('dash-team');
-  if(teamEl)teamEl.innerHTML=workCard({
-    color:'#0891b2',icon:'ti-users',title:'Gastos Team',page:'team',
-    arsVal:teamTotal,usdVal:teamTotal/T,
-    countTxt:teamData.length+' gastos registrados'
-  });
+  if(teamEl)teamEl.innerHTML='<div class="card" style="border-left:2px solid #0891b2;border-radius:0 var(--radius) var(--radius) 0">'+
+    '<div style="font-size:11px;font-weight:700;color:#0e7490;margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="ti ti-users" style="font-size:14px"></i> Gastos team '+
+      '<button class="btn" style="font-size:11px;padding:3px 8px;margin-left:auto" onclick="go(\'team\')">Ver →</button>'+
+    '</div>'+
+    '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px">'+
+      '<span style="font-size:22px;font-weight:700">'+ars(teamTotal)+'</span>'+
+      '<span style="font-size:12px;color:var(--text3)">'+usdFmt(teamTotal/T)+'</span>'+
+    '</div>'+
+    '<div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:7px">'+
+      '<div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:var(--text2)">Último mes</span><span style="font-size:11px;font-weight:600">'+ars(teamUltMes)+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:var(--text2)">Promedio mensual</span><span style="font-size:11px;font-weight:600">'+ars(teamProm)+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:var(--text2)">Gastos registrados</span><span style="font-size:11px;font-weight:600">'+teamData.length+'</span></div>'+
+    '</div>'+
+  '</div>';
 
-  /* ── TRABAJO: INVERSIONES ── */
+  /* ── INVERSIÓN: DEPARTAMENTO EN POZO ── */
   const invARS=invData.reduce((s,m)=>s+(parseFloat(m.valor_ars)||0),0);
   const invUSD=invData.reduce((s,m)=>s+(parseFloat(m.valor_usd)||0),0);
+  const cuotas=invData.length;
+  let valorDepto=0;let totalCuotas=0;
+  try{valorDepto=parseFloat(localStorage.getItem('gp_depto_valor'))||0;totalCuotas=parseInt(localStorage.getItem('gp_depto_cuotas'))||0;}catch(e){}
   const invEl=document.getElementById('dash-inv');
-  if(invEl)invEl.innerHTML=workCard({
-    color:'#dc2626',icon:'ti-trending-up',title:'Inversiones',page:'inversiones',
-    arsVal:invARS,usdVal:invUSD,
-    countTxt:invData.length+' movimientos'
-  });
+  if(invEl)invEl.innerHTML='<div class="card" style="border-left:2px solid #dc2626;border-radius:0 var(--radius) var(--radius) 0">'+
+    '<div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:10px;display:flex;align-items:center;gap:5px"><i class="ti ti-building" style="font-size:14px"></i> Departamento en pozo '+
+      '<button class="btn" style="font-size:11px;padding:3px 8px;margin-left:auto" onclick="go(\'inversiones\')">Ver →</button>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">'+
+      '<div><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Total abonado</div>'+
+        '<div style="font-size:20px;font-weight:700">'+ars(invARS+(invUSD*T))+'</div>'+
+        '<div style="font-size:11px;color:var(--text3)">U$S '+Math.round(invUSD).toLocaleString('es-AR')+'</div>'+
+      '</div>'+
+      '<div><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Cuotas pagadas</div>'+
+        '<div style="font-size:20px;font-weight:700">'+cuotas+(totalCuotas?' / '+totalCuotas:'')+'</div>'+
+        (totalCuotas?'<div style="height:4px;background:var(--bg3);border-radius:2px;margin-top:6px"><div style="height:4px;background:#dc2626;border-radius:2px;width:'+Math.round(cuotas/totalCuotas*100)+'%"></div></div>':'<div style="font-size:10px;color:var(--text3);margin-top:4px">de ? cuotas</div>')+
+      '</div>'+
+    '</div>'+
+    '<div style="border-top:1px solid var(--border);padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+      '<div style="background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer" onclick="editDeptoConfig(\'valor\')" title="Click para editar">'+
+        '<div style="font-size:10px;color:var(--text3)">Valor total depto</div>'+
+        '<div style="font-size:12px;font-weight:600;color:var(--text2)">'+( valorDepto?ars(valorDepto):'Por completar ✏️')+'</div>'+
+      '</div>'+
+      '<div style="background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer" onclick="editDeptoConfig(\'cuotas\')" title="Click para editar">'+
+        '<div style="font-size:10px;color:var(--text3)">Total de cuotas</div>'+
+        '<div style="font-size:12px;font-weight:600;color:var(--text2)">'+( totalCuotas?totalCuotas+' cuotas':'Por completar ✏️')+'</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
 
+function editDeptoConfig(field){
+  const isValor=field==='valor';
+  const key=isValor?'gp_depto_valor':'gp_depto_cuotas';
+  const label=isValor?'Valor total del depto (en ARS)':'Total de cuotas';
+  const current=localStorage.getItem(key)||'';
+  const val=prompt(label+':',current);
+  if(val===null)return;
+  const n=parseFloat(val.replace(/[.,\s]/g,'').replace(',','.'));
+  if(n>0){try{localStorage.setItem(key,n);}catch(e){}}
+  else{try{localStorage.removeItem(key);}catch(e){}}
+  renderOverview();
 }
 
 /* ANALISIS */
