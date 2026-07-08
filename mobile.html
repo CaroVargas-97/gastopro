@@ -86,6 +86,15 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .hist-amt{font-size:13px;font-weight:700;color:var(--text);flex-shrink:0}
 .hist-empty{font-size:13px;color:var(--text3);text-align:center;padding:16px 0}
 .hist-loading{font-size:12px;color:var(--text3);text-align:center;padding:12px 0}
+.edit-hist-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:12px;display:flex;align-items:center}
+.edit-hist-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200}
+.modal-overlay.open{display:flex;align-items:flex-end}
+.modal-sheet{background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 16px 32px;width:100%}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:16px}
+.btn-modal-save{width:100%;height:48px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px}
+.btn-modal-cancel{width:100%;height:44px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:15px;cursor:pointer;margin-top:8px}
 </style>
 </head>
 <body>
@@ -103,7 +112,9 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     <div class="ff"><label class="flabel">Contraseña</label>
       <div class="pass-wrap">
         <input class="finput" type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-        <button class="eye-btn" type="button" onclick="(function(b){const i=document.getElementById('l-pass');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';})(this)">👁</button>
+        <button class="eye-btn" type="button" id="eye-toggle" onclick="togglePass()">
+          <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </div>
     </div>
     <button class="btn-login" onclick="doLogin()" id="login-btn">Entrar</button>
@@ -142,6 +153,16 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 
 <div class="toast" id="toast"></div>
 
+<div class="modal-overlay" id="edit-modal" onclick="if(event.target===this)closeEdit()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="edit-modal-title">Editar</div>
+    <div id="edit-modal-body"></div>
+    <button class="btn-modal-save" onclick="saveEdit()">Guardar cambios</button>
+    <button class="btn-modal-cancel" onclick="closeEdit()">Cancelar</button>
+  </div>
+</div>
+
 <script>
 const SUPA_URL='https://kujzslrpdfbscltnsquv.supabase.co';
 const SUPA_KEY='sb_publishable_0XEjYVJ8j5Dlqa6SERapvA_VgOMLzWF';
@@ -155,6 +176,9 @@ const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros
 let currentUser=null;
 let currentTab='vida';
 let tcVal=1370;
+let editCache={};
+let editId=null;
+let editSection=null;
 
 function mesActual(){return MESES[new Date().getMonth()];}
 
@@ -214,17 +238,90 @@ function renderTab(tab){
   else if(tab==='team'){el.innerHTML=formTeam();loadHistTeam();}
 }
 
+function togglePass(){
+  const i=document.getElementById('l-pass');
+  const showing=i.type==='text';
+  i.type=showing?'password':'text';
+  document.getElementById('eye-icon').innerHTML=showing
+    ?'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+    :'<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+}
+
 function arsF(v){return'$'+Math.round(v).toLocaleString('es-AR');}
 
-function histItem(icon,desc,sub,amt){
+function histItem(id,section,icon,desc,sub,amt){
   return'<div class="hist-item">'+
     '<div class="hist-icon">'+icon+'</div>'+
     '<div class="hist-info">'+
       '<div class="hist-desc">'+desc+'</div>'+
       '<div class="hist-sub">'+sub+'</div>'+
     '</div>'+
-    '<div class="hist-amt">'+amt+'</div>'+
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+
+      '<div class="hist-amt">'+amt+'</div>'+
+      '<button class="edit-hist-btn" onclick="openEdit(\''+section+'\',\''+id+'\')">'+
+        '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'+
+      '</button>'+
+    '</div>'+
   '</div>';
+}
+
+function openEdit(section,id){
+  const r=editCache[id];
+  if(!r)return;
+  editId=id;editSection=section;
+  const modal=document.getElementById('edit-modal');
+  const title=document.getElementById('edit-modal-title');
+  const body=document.getElementById('edit-modal-body');
+  if(section==='vida'){
+    title.textContent='Editar gasto personal';
+    body.innerHTML=
+      '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" id="em-desc" value="'+( r.descripcion||'')+'"></div>'+
+      '<div class="row2" style="margin-bottom:12px">'+
+        '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="em-mes">'+mesOpts(r.mes)+'</select></div>'+
+        '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="em-val" value="'+(r.valor||0)+'"></div>'+
+      '</div>'+
+      '<div class="row2" style="margin-bottom:16px">'+
+        '<div class="ff"><label class="flabel">Método</label><select class="minput" id="em-met"><option value="CREDITO" '+(r.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="EFECTIVO" '+(r.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option></select></div>'+
+        '<div class="ff"><label class="flabel">Fuente</label><input class="minput" id="em-fuente" value="'+(r.fuente||'')+'" placeholder="AMEX..."></div>'+
+      '</div>';
+  }else{
+    title.textContent='Editar gasto del team';
+    body.innerHTML=
+      '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" id="em-desc" value="'+(r.descripcion||'')+'"></div>'+
+      '<div class="row2" style="margin-bottom:16px">'+
+        '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="em-mes">'+mesOpts(r.mes)+'</select></div>'+
+        '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="em-val" value="'+(r.valor_ars||0)+'"></div>'+
+      '</div>';
+  }
+  modal.classList.add('open');
+}
+
+function closeEdit(){
+  document.getElementById('edit-modal').classList.remove('open');
+  editId=null;editSection=null;
+}
+
+async function saveEdit(){
+  const desc=document.getElementById('em-desc').value.trim().toUpperCase();
+  const mes=document.getElementById('em-mes').value;
+  const val=parseFloat(document.getElementById('em-val').value)||0;
+  if(!desc||!val){showToast('Completá los campos');return;}
+  const btn=document.querySelector('.btn-modal-save');
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    if(editSection==='vida'){
+      const met=document.getElementById('em-met').value;
+      const fuente=document.getElementById('em-fuente').value.trim();
+      await sb.from('transacciones').update({descripcion:desc,mes,metodo:met,valor:val,usd:val/tcVal,fuente}).eq('id',editId);
+    }else{
+      await sb.from('cuentas_movimientos').update({descripcion:desc,mes,valor_ars:val,valor_usd:parseFloat((val/tcVal).toFixed(2))}).eq('id',editId);
+    }
+    showToast('✓ Cambios guardados');
+    closeEdit();
+    if(editSection==='vida'||currentTab==='vida')loadHistVida();
+    if(editSection==='team'||currentTab==='team')loadHistTeam();
+  }catch(e){showToast('Error: '+e.message);}
+  btn.disabled=false;btn.textContent='Guardar cambios';
 }
 
 async function loadHistVida(){
@@ -232,14 +329,15 @@ async function loadHistVida(){
   if(!box)return;
   try{
     const {data,error}=await sb.from('transacciones')
-      .select('descripcion,valor,mes,metodo,fuente,cat,created_at')
+      .select('id,descripcion,valor,mes,metodo,fuente,cat,created_at')
       .order('created_at',{ascending:false}).limit(8);
     if(error)throw error;
     if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos cargados aún</div>';return;}
+    data.forEach(r=>{editCache[r.id]=r;});
     box.innerHTML=data.map(r=>{
       const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
       const sub=(r.mes||'')+' · '+(r.fuente||r.metodo||'');
-      return histItem(metIcon,r.descripcion||'–',sub,arsF(r.valor));
+      return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
     }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
@@ -249,14 +347,15 @@ async function loadHistTeam(){
   if(!box)return;
   try{
     const {data,error}=await sb.from('cuentas_movimientos')
-      .select('descripcion,valor_ars,mes,creado_por,metodo,created_at')
+      .select('id,descripcion,valor_ars,mes,creado_por,metodo,created_at')
       .eq('cuenta','TEAM')
       .order('created_at',{ascending:false}).limit(8);
     if(error)throw error;
     if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos del team cargados aún</div>';return;}
+    data.forEach(r=>{editCache[r.id]=r;});
     box.innerHTML=data.map(r=>{
       const sub=(r.mes||'')+' · '+(r.creado_por||'');
-      return histItem('👥',r.descripcion||'–',sub,arsF(r.valor_ars));
+      return histItem(r.id,'team','👥',r.descripcion||'–',sub,arsF(r.valor_ars));
     }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
