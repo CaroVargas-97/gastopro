@@ -425,23 +425,20 @@ tr:hover .action-btns{opacity:1}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">Inversiones</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Movimientos de inversión — visible para todos</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Movimientos de capital — visible para todos</div>
           </div>
           <button class="btn btn-accent" onclick="showInvForm()"><i class="ti ti-plus"></i> Agregar movimiento</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-          <div class="card" style="margin:0">
-            <div class="card-title" style="margin-bottom:6px">Total en pesos</div>
-            <div id="inv-total-ars" style="font-size:22px;font-weight:700;color:var(--text)">$0</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:4px">TC: $<span id="inv-tc-show">1370</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div class="card" style="margin:0;border-top:2px solid #dc2626">
+            <div class="card-title" style="margin-bottom:6px">Capital en pesos</div>
+            <div id="inv-total-ars" style="font-size:26px;font-weight:700;color:var(--text)">$0</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:5px">TC hoy: $<span id="inv-tc-show">1370</span></div>
           </div>
-          <div class="card" style="margin:0">
-            <div class="card-title" style="margin-bottom:10px">Total en dólares</div>
-            <div id="inv-total-usd" style="font-size:22px;font-weight:700;color:var(--text)">U$S 0</div>
-          </div>
-          <div class="card" style="margin:0">
-            <div class="card-title" style="margin-bottom:10px">Movimientos</div>
-            <div id="inv-count" style="font-size:22px;font-weight:700;color:var(--text)">0</div>
+          <div class="card" style="margin:0;border-top:2px solid #0891b2">
+            <div class="card-title" style="margin-bottom:6px">Capital en dólares</div>
+            <div id="inv-total-usd" style="font-size:26px;font-weight:700;color:#0891b2">U$S 0</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:5px"><span id="inv-count">0</span> movimientos registrados</div>
           </div>
         </div>
         <div id="inv-analisis" style="margin-bottom:12px"></div>
@@ -1332,47 +1329,70 @@ function buildInvAnalisis(data){
   const T=tc();
   const totalARS=data.reduce(function(s,m){return s+(parseFloat(m.valor_ars)||0);},0);
   const totalUSD=data.reduce(function(s,m){return s+(parseFloat(m.valor_usd)||0);},0);
-  const totalHoy=totalARS+(totalUSD*T);
-  const top3=[...data].sort(function(a,b){
-    const va=(b.valor_ars||0)+((b.valor_usd||0)*T);
-    const vb=(a.valor_ars||0)+((a.valor_usd||0)*T);
-    return va-vb;
-  }).slice(0,3);
-  const byFecha={};
+  const valorHoy=totalARS+(totalUSD*T);
+  const moNames=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+
+  // Group by YYYY-MM
+  const byMes={};
   data.forEach(function(m){
     const k=(m.fecha||'').substring(0,7);
     if(!k)return;
-    byFecha[k]=(byFecha[k]||0)+(parseFloat(m.valor_ars)||0)+((parseFloat(m.valor_usd)||0)*T);
+    if(!byMes[k]){byMes[k]={arsV:0,usdV:0,count:0};}
+    byMes[k].arsV+=(parseFloat(m.valor_ars)||0);
+    byMes[k].usdV+=(parseFloat(m.valor_usd)||0);
+    byMes[k].count++;
   });
-  const fechaEntries=Object.entries(byFecha).sort(function(a,b){return a[0].localeCompare(b[0]);});
-  const maxF=Math.max.apply(null,fechaEntries.map(function(e){return e[1];})||[1]);
-  const fechaBars=fechaEntries.map(function(e){
-    const pct=maxF>0?Math.round(e[1]/maxF*100):0;
-    const label=e[0].substring(5,7)+'/'+e[0].substring(0,4);
-    return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">'+
-      '<div style="font-size:11px;color:var(--text2);width:50px;text-align:right;flex-shrink:0">'+label+'</div>'+
-      '<div style="flex:1;background:var(--bg3);border-radius:3px;height:6px"><div style="width:'+pct+'%;background:#dc2626;height:6px;border-radius:3px"></div></div>'+
-      '<div style="font-size:11px;font-weight:600;color:var(--text);width:80px;text-align:right;flex-shrink:0">'+ars(e[1])+'</div>'+
+  const meses=Object.keys(byMes).sort();
+  const maxV=meses.length?Math.max.apply(null,meses.map(function(m){return byMes[m].arsV+byMes[m].usdV*T;})):1;
+
+  const mesPills=meses.map(function(m,i){
+    const{arsV,usdV,count}=byMes[m];
+    const v=arsV+usdV*T;
+    const prev=i>0?byMes[meses[i-1]]:null;
+    const prevV=prev?prev.arsV+prev.usdV*T:0;
+    const delta=prevV>0?(v-prevV)/prevV*100:null;
+    const deltaHtml=delta!==null?'<span class="delta-pill '+(delta>0?'delta-up':'delta-down')+'">'+(delta>0?'▲':'▼')+Math.abs(Math.round(delta))+'%</span>':'';
+    const barPct=maxV>0?Math.round(v/maxV*100):0;
+    const parts=m.split('-');
+    const moLabel=(moNames[parseInt(parts[1])-1]||parts[1])+' '+parts[0].slice(2);
+    return'<div class="mes-card">'+
+      '<div class="mes-name" style="display:flex;justify-content:space-between;align-items:center"><span>'+moLabel+'</span>'+deltaHtml+'</div>'+
+      '<div class="mes-ars">'+ars(Math.round(v))+'</div>'+
+      (usdV>0?'<div style="font-size:10px;color:#0891b2;margin-top:2px">U$S '+Math.round(usdV).toLocaleString('es-AR')+'</div>':'<div style="font-size:10px;margin-top:2px">&nbsp;</div>')+
+      '<div style="height:3px;background:var(--bg3);border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:3px;background:#dc2626;border-radius:2px;width:'+barPct+'%"></div></div>'+
+      '<div style="font-size:9px;color:var(--text3);margin-top:6px;font-weight:600">'+count+' mov.</div>'+
     '</div>';
   }).join('');
-  const arsHtml='<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Total en ARS</div><div style="font-size:14px;font-weight:700">'+ars(totalARS)+'</div></div>'+
-    '<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Total en USD</div><div style="font-size:14px;font-weight:700;color:#0891b2">U$S '+Math.round(totalUSD).toLocaleString('es-AR')+'</div></div>'+
-    '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Valor hoy (ARS)</div><div style="font-size:14px;font-weight:700;color:#dc2626">'+ars(Math.round(totalHoy))+'</div></div>';
+
+  // Top 3
+  const top3=[...data].sort(function(a,b){
+    return((b.valor_ars||0)+((b.valor_usd||0)*T))-((a.valor_ars||0)+((a.valor_usd||0)*T));
+  }).slice(0,3);
   const topHtml=top3.map(function(m,i){
     const v=(m.valor_ars||0)+((m.valor_usd||0)*T);
     return'<div style="display:flex;align-items:center;gap:8px'+(i<top3.length-1?';margin-bottom:9px':'')+'">'+
-      '<div style="width:18px;height:18px;border-radius:50%;background:#dc262622;color:#dc2626;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</div>'+
+      '<div style="width:18px;height:18px;border-radius:50%;background:rgba(220,38,38,.12);color:#dc2626;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</div>'+
       '<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(m.descripcion||'–')+'</div>'+
       '<div style="font-size:10px;color:var(--text3)">'+(m.fecha||'')+'</div></div>'+
       '<div style="font-size:12px;font-weight:700;flex-shrink:0">'+ars(Math.round(v))+'</div>'+
     '</div>';
   }).join('');
-  return'<div class="card" style="margin-bottom:12px;border-top:2px solid #dc2626">'+
-    '<div class="card-head" style="margin-bottom:14px"><span class="card-title">Análisis</span></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">'+
-      '<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Por período</div>'+fechaBars+'</div>'+
-      '<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Resumen</div>'+arsHtml+'</div>'+
-      '<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Mayores movimientos</div>'+topHtml+'</div>'+
+
+  return(meses.length>1?'<div class="mes-grid" style="margin-bottom:12px">'+mesPills+'</div>':'')+
+  '<div class="g2" style="margin-bottom:0">'+
+    '<div class="card" style="margin:0">'+
+      '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Valor total hoy</div>'+
+      '<div style="font-size:24px;font-weight:700;color:var(--text);margin-bottom:2px">'+ars(Math.round(valorHoy))+'</div>'+
+      '<div style="font-size:11px;color:var(--text3);margin-bottom:14px">ARS + USD al TC actual</div>'+
+      '<div style="padding-top:12px;border-top:1px solid var(--border)">'+
+        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:11px;color:var(--text2)">Solo en ARS</span><span style="font-size:12px;font-weight:600">'+ars(totalARS)+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:11px;color:var(--text2)">Solo en USD</span><span style="font-size:12px;font-weight:600;color:#0891b2">U$S '+Math.round(totalUSD).toLocaleString('es-AR')+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:11px;color:var(--text2)">USD valorizado</span><span style="font-size:12px;font-weight:600;color:#dc2626">'+ars(Math.round(totalUSD*T))+'</span></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card" style="margin:0">'+
+      '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Mayores movimientos</div>'+
+      topHtml+
     '</div>'+
   '</div>';
 }
