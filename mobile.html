@@ -137,10 +137,6 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
       <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.85"/></svg>
       Team
     </button>
-    <button class="nav-tab" onclick="goTab('inv',this)" id="tab-inv">
-      <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-      Inversiones
-    </button>
   </nav>
 </div>
 
@@ -216,7 +212,6 @@ function renderTab(tab){
   const el=document.getElementById('main-content');
   if(tab==='vida'){el.innerHTML=formVida();loadHistVida();}
   else if(tab==='team'){el.innerHTML=formTeam();loadHistTeam();}
-  else{el.innerHTML=formInv();loadHistInv();}
 }
 
 function arsF(v){return'$'+Math.round(v).toLocaleString('es-AR');}
@@ -266,23 +261,6 @@ async function loadHistTeam(){
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
 
-async function loadHistInv(){
-  const box=document.getElementById('hist-inv');
-  if(!box)return;
-  try{
-    const {data,error}=await sb.from('cuentas_movimientos')
-      .select('descripcion,valor_ars,valor_usd,fecha,creado_por,created_at')
-      .eq('cuenta','INVERSIONES')
-      .order('created_at',{ascending:false}).limit(8);
-    if(error)throw error;
-    if(!data.length){box.innerHTML='<div class="hist-empty">Sin movimientos cargados aún</div>';return;}
-    box.innerHTML=data.map(r=>{
-      const amt=r.valor_usd>0?'U$S '+Math.round(r.valor_usd).toLocaleString('es-AR'):arsF(r.valor_ars);
-      const sub=(r.fecha||'')+' · '+(r.creado_por||'');
-      return histItem('📈',r.descripcion||'–',sub,amt);
-    }).join('');
-  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
-}
 
 function mesOpts(selected){
   return MESES.map(m=>'<option value="'+m+'" '+(m===selected?'selected':'')+'>'+m.charAt(0).toUpperCase()+m.slice(1)+'</option>').join('');
@@ -331,24 +309,6 @@ function formTeam(){
   '<div class="hist-list" id="hist-team"><div class="hist-loading">Cargando...</div></div>';
 }
 
-function formInv(){
-  const hoy=new Date().toISOString().split('T')[0];
-  return'<div class="section-title">Nuevo movimiento</div>'+
-  '<div class="form-card">'+
-    '<div class="row2" style="margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Fecha</label><input class="minput" type="date" id="i-fecha" value="'+hoy+'"></div>'+
-      '<div class="ff"><label class="flabel">TC del día</label><input class="minput" type="number" id="i-tc" inputmode="numeric" value="'+tcVal+'"></div>'+
-    '</div>'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="i-desc" placeholder="Ej: Depósito, compra USD..."></div>'+
-    '<div class="row2" style="margin-bottom:16px">'+
-      '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="i-ars" inputmode="numeric" placeholder="0"></div>'+
-      '<div class="ff"><label class="flabel">Monto USD</label><input class="minput" type="number" id="i-usd" inputmode="decimal" placeholder="0"></div>'+
-    '</div>'+
-    '<button class="btn-save" onclick="saveInv()">✓ Guardar movimiento</button>'+
-  '</div>'+
-  '<div class="hist-title">Últimos movimientos</div>'+
-  '<div class="hist-list" id="hist-inv"><div class="hist-loading">Cargando...</div></div>';
-}
 
 async function saveVida(){
   const mes=document.getElementById('v-mes').value;
@@ -394,26 +354,6 @@ async function saveTeam(){
   }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar gasto';}
 }
 
-async function saveInv(){
-  const fecha=document.getElementById('i-fecha').value;
-  const tcHoy=parseFloat(document.getElementById('i-tc').value)||tcVal;
-  const desc=document.getElementById('i-desc').value.trim();
-  const valARS=parseFloat(document.getElementById('i-ars').value)||0;
-  const valUSD=parseFloat(document.getElementById('i-usd').value)||0;
-  if(!desc||(!valARS&&!valUSD)){showToast('Completá descripción y al menos un monto');return;}
-  const btn=document.querySelector('.btn-save');
-  btn.disabled=true;btn.textContent='Guardando...';
-  try{
-    await sb.from('cuentas_movimientos').insert({
-      cuenta:'INVERSIONES',tipo:'MOVIMIENTO',descripcion:desc.toUpperCase(),
-      valor_ars:valARS,valor_usd:valUSD,tc:tcHoy,fecha,
-      creado_por:currentUser.email.split('@')[0]
-    });
-    showToast('✓ Movimiento guardado');
-    renderTab('inv');
-    loadHistInv();
-  }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar movimiento';}
-}
 
 function showToast(msg){
   const t=document.getElementById('toast');
