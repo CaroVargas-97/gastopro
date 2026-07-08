@@ -236,7 +236,10 @@ tr:hover .action-btns{opacity:1}
     </div>
     <div class="ff">
       <label class="flabel">Contraseña</label>
-      <input class="finput" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <div style="position:relative">
+        <input class="finput" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:36px">
+        <button type="button" onclick="(function(b){const i=document.getElementById('login-pass');i.type=i.type==='password'?'text':'password';b.querySelector('i').className=i.type==='password'?'ti ti-eye':'ti ti-eye-off';})(this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;display:flex;align-items:center;font-size:16px"><i class="ti ti-eye"></i></button>
+      </div>
     </div>
     <button class="btn-full" id="login-btn" onclick="doLogin()"><i class="ti ti-login"></i> Entrar</button>
     <div class="login-footer">¿Problemas para entrar? Escribile a Caro.</div>
