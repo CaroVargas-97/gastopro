@@ -372,13 +372,18 @@ function catOpts(cats,selected){
   return cats.map(c=>'<option value="'+c+'" '+(c===selected?'selected':'')+'>'+(CATLAB[c]||c)+'</option>').join('');
 }
 
+function fechaHoyStr(){
+  const d=new Date();
+  return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
+}
+
 function formVida(){
   const mes=mesActual();
   return'<div class="section-title">Nuevo gasto personal</div>'+
   '<div class="form-card">'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="v-mes">'+mesOpts(mes)+'</select></div>'+
-      '<div class="ff"><label class="flabel">Categoría</label><select class="minput" id="v-cat">'+catOpts(CATS_VIDA,'COMIDAS')+'</select></div>'+
+      '<div class="ff"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
     '</div>'+
     '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="v-desc" placeholder="Ej: Rappi, Netflix, YPF..."></div>'+
     '<div class="row2" style="margin-bottom:12px">'+
@@ -398,7 +403,7 @@ function formTeam(){
   '<div class="form-card">'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="t-mes">'+mesOpts(mes)+'</select></div>'+
-      '<div class="ff"><label class="flabel">Categoría</label><select class="minput" id="t-cat">'+catOpts(CATS_TEAM,'TEAM')+'</select></div>'+
+      '<div class="ff"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
     '</div>'+
     '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="t-desc" placeholder="Ej: Almuerzo cliente, taxi..."></div>'+
     '<div class="row2" style="margin-bottom:12px">'+
