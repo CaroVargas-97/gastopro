@@ -88,6 +88,29 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .hist-loading{font-size:12px;color:var(--text3);text-align:center;padding:12px 0}
 .edit-hist-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:12px;display:flex;align-items:center}
 .edit-hist-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* CALENDAR */
+.cal-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month{font-size:13px;font-weight:700;color:var(--text)}
+.cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:2px 8px;line-height:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{font-size:9px;font-weight:700;color:var(--text3);text-align:center;padding-bottom:4px;text-transform:uppercase}
+.cal-day{display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:6px;cursor:pointer;min-height:32px;gap:2px}
+.cal-day:active{background:var(--bg3)}
+.cal-day.has-entry{cursor:pointer}
+.cal-day.selected{background:var(--accent)}
+.cal-day.selected .cal-dn{color:#fff}
+.cal-day.selected .cal-dot{background:#fff}
+.cal-day.today .cal-dn{color:var(--accent);font-weight:700}
+.cal-day.empty{pointer-events:none}
+.cal-dn{font-size:12px;color:var(--text)}
+.cal-dot{width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.cal-dot.hidden{visibility:hidden}
+.cal-filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;min-height:20px}
+.cal-filter-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.cal-clear{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0}
+
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200}
 .modal-overlay.open{display:flex;align-items:flex-end}
 .modal-sheet{background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 16px 32px;width:100%}
@@ -179,6 +202,7 @@ let tcVal=1370;
 let editCache={};
 let editId=null;
 let editSection=null;
+let calState={vida:{year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]},team:{year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]}};
 
 function mesActual(){return MESES[new Date().getMonth()];}
 
@@ -325,45 +349,142 @@ async function saveEdit(){
 }
 
 async function loadHistVida(){
+  const calEl=document.getElementById('cal-vida');
   const box=document.getElementById('hist-vida');
   if(!box)return;
+  const st=calState['vida'];
+  const from=new Date(st.year,st.month,1).toISOString();
+  const to=new Date(st.year,st.month+1,0,23,59,59).toISOString();
   try{
     const {data,error}=await sb.from('transacciones')
       .select('id,descripcion,valor,mes,metodo,fuente,cat,created_at')
-      .order('created_at',{ascending:false}).limit(8);
+      .gte('created_at',from).lte('created_at',to)
+      .order('created_at',{ascending:false});
     if(error)throw error;
-    if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos cargados aún</div>';return;}
     data.forEach(r=>{editCache[r.id]=r;});
-    box.innerHTML=data.map(r=>{
+    st.records=data;
+    if(calEl)calEl.innerHTML=renderCal('vida');
+    renderHistList('vida');
+  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
+}
+
+async function loadHistTeam(){
+  const calEl=document.getElementById('cal-team');
+  const box=document.getElementById('hist-team');
+  if(!box)return;
+  const st=calState['team'];
+  const from=new Date(st.year,st.month,1).toISOString();
+  const to=new Date(st.year,st.month+1,0,23,59,59).toISOString();
+  try{
+    const {data,error}=await sb.from('cuentas_movimientos')
+      .select('id,descripcion,valor_ars,mes,creado_por,metodo,created_at')
+      .eq('cuenta','TEAM')
+      .gte('created_at',from).lte('created_at',to)
+      .order('created_at',{ascending:false});
+    if(error)throw error;
+    data.forEach(r=>{editCache[r.id]=r;});
+    st.records=data;
+    const calEl2=document.getElementById('cal-team');
+    if(calEl2)calEl2.innerHTML=renderCal('team');
+    renderHistList('team');
+  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
+}
+
+
+function renderCal(section){
+  const st=calState[section];
+  const {year,month,selected,records}=st;
+  const daysWithEntries=new Set(records.map(r=>{
+    const d=new Date(r.created_at);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  }));
+  const today=new Date();
+  const todayKey=today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const monthName=new Date(year,month,1).toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+  const dow=['D','L','M','X','J','V','S'];
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+='<div class="cal-day empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=year+'-'+(month+1)+'-'+d;
+    const isSel=selected===key;
+    const isToday=key===todayKey;
+    const hasDot=daysWithEntries.has(key);
+    cells+='<div class="cal-day'+(isSel?' selected':'')+(isToday&&!isSel?' today':'')+(hasDot?' has-entry':'')+'" onclick="selectCalDay(\''+section+'\',\''+key+'\')">'+
+      '<span class="cal-dn">'+d+'</span>'+
+      '<span class="cal-dot'+(hasDot?'':' hidden')+'"></span>'+
+    '</div>';
+  }
+  return'<div class="cal-wrap">'+
+    '<div class="cal-header">'+
+      '<button class="cal-nav" onclick="calNav(\''+section+'\',-1)">‹</button>'+
+      '<span class="cal-month">'+monthName.charAt(0).toUpperCase()+monthName.slice(1)+'</span>'+
+      '<button class="cal-nav" onclick="calNav(\''+section+'\',1)">›</button>'+
+    '</div>'+
+    '<div class="cal-grid">'+
+      dow.map(d=>'<div class="cal-dow">'+d+'</div>').join('')+
+      cells+
+    '</div>'+
+  '</div>';
+}
+
+function calNav(section,dir){
+  const st=calState[section];
+  let m=st.month+dir,y=st.year;
+  if(m>11){m=0;y++;}else if(m<0){m=11;y--;}
+  st.month=m;st.year=y;st.selected=null;
+  if(section==='vida')loadHistVida();else loadHistTeam();
+}
+
+function selectCalDay(section,key){
+  const st=calState[section];
+  st.selected=st.selected===key?null:key;
+  const calEl=document.getElementById('cal-'+section);
+  if(calEl)calEl.innerHTML=renderCal(section);
+  renderHistList(section);
+}
+
+function renderHistList(section){
+  const st=calState[section];
+  const box=document.getElementById('hist-'+section);
+  if(!box)return;
+  let records=st.records;
+  const filterLbl=document.getElementById('cal-filter-lbl-'+section);
+  if(st.selected){
+    const [y,m,d]=st.selected.split('-').map(Number);
+    records=records.filter(r=>{
+      const rd=new Date(r.created_at);
+      return rd.getFullYear()===y&&(rd.getMonth()+1)===m&&rd.getDate()===d;
+    });
+    if(filterLbl)filterLbl.innerHTML='<span class="cal-filter-lbl">'+formatSelDate(st.selected)+'</span><button class="cal-clear" onclick="clearCalSel(\''+section+'\')">Ver todos</button>';
+  }else{
+    if(filterLbl)filterLbl.innerHTML='<span class="cal-filter-lbl">Últimos cargados</span>';
+  }
+  if(!records.length){box.innerHTML='<div class="hist-empty">Sin gastos para este día</div>';return;}
+  if(section==='vida'){
+    box.innerHTML=records.map(r=>{
       const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
       const d=r.created_at?new Date(r.created_at):null;
       const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
       const sub=(fechaStr?fechaStr+' · ':'')+( r.fuente||r.metodo||'');
       return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
     }).join('');
-  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
-}
-
-async function loadHistTeam(){
-  const box=document.getElementById('hist-team');
-  if(!box)return;
-  try{
-    const {data,error}=await sb.from('cuentas_movimientos')
-      .select('id,descripcion,valor_ars,mes,creado_por,metodo,created_at')
-      .eq('cuenta','TEAM')
-      .order('created_at',{ascending:false}).limit(8);
-    if(error)throw error;
-    if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos del team cargados aún</div>';return;}
-    data.forEach(r=>{editCache[r.id]=r;});
-    box.innerHTML=data.map(r=>{
+  }else{
+    box.innerHTML=records.map(r=>{
       const d=r.created_at?new Date(r.created_at):null;
       const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
       const sub=(fechaStr?fechaStr+' · ':'')+( r.creado_por||'');
       return histItem(r.id,'team','👥',r.descripcion||'–',sub,arsF(r.valor_ars));
     }).join('');
-  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
+  }
 }
 
+function clearCalSel(section){calState[section].selected=null;const el=document.getElementById('cal-'+section);if(el)el.innerHTML=renderCal(section);renderHistList(section);}
+
+function formatSelDate(key){
+  const [y,m,d]=key.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+}
 
 function mesOpts(selected){
   return MESES.map(m=>'<option value="'+m+'" '+(m===selected?'selected':'')+'>'+m.charAt(0).toUpperCase()+m.slice(1)+'</option>').join('');
@@ -390,7 +511,8 @@ function formVida(){
     '<div class="ff" style="margin-bottom:16px"><label class="flabel">Fuente (tarjeta)</label><input class="minput" type="text" id="v-fuente" placeholder="AMEX, BBVA..."></div>'+
     '<button class="btn-save" onclick="saveVida()">✓ Guardar gasto</button>'+
   '</div>'+
-  '<div class="hist-title">Últimos cargados</div>'+
+  '<div id="cal-vida"></div>'+
+  '<div class="cal-filter-bar" id="cal-filter-lbl-vida"><span class="cal-filter-lbl">Últimos cargados</span></div>'+
   '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
 }
 
@@ -406,7 +528,8 @@ function formTeam(){
     '</div>'+
     '<button class="btn-save" onclick="saveTeam()">✓ Guardar gasto</button>'+
   '</div>'+
-  '<div class="hist-title">Últimos cargados</div>'+
+  '<div id="cal-team"></div>'+
+  '<div class="cal-filter-bar" id="cal-filter-lbl-team"><span class="cal-filter-lbl">Últimos cargados</span></div>'+
   '<div class="hist-list" id="hist-team"><div class="hist-loading">Cargando...</div></div>';
 }
 
