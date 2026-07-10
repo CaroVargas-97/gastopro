@@ -89,24 +89,17 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .edit-hist-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:12px;display:flex;align-items:center}
 .edit-hist-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* CALENDAR */
-.cal-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.cal-month{font-size:13px;font-weight:700;color:var(--text)}
-.cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:2px 8px;line-height:1}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-dow{font-size:9px;font-weight:700;color:var(--text3);text-align:center;padding-bottom:4px;text-transform:uppercase}
-.cal-day{display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:6px;cursor:pointer;min-height:32px;gap:2px}
-.cal-day:active{background:var(--bg3)}
-.cal-day.has-entry{cursor:pointer}
-.cal-day.selected{background:var(--accent)}
-.cal-day.selected .cal-dn{color:#fff}
-.cal-day.selected .cal-dot{background:#fff}
-.cal-day.today .cal-dn{color:var(--accent);font-weight:700}
-.cal-day.empty{pointer-events:none}
-.cal-dn{font-size:12px;color:var(--text)}
-.cal-dot{width:4px;height:4px;border-radius:50%;background:var(--accent)}
-.cal-dot.hidden{visibility:hidden}
+/* DATE CHIPS */
+.date-chips-wrap{margin-bottom:14px}
+.date-chips-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.date-chips-row::-webkit-scrollbar{display:none}
+.date-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;transition:background .15s}
+.date-chip.selected{background:var(--accent);border-color:var(--accent)}
+.date-chip.selected .chip-day{color:#fff}
+.date-chip.selected .chip-dow{color:rgba(255,255,255,.75)}
+.date-chip-day{font-size:15px;font-weight:700;color:var(--text)}
+.date-chip-dow{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase}
+.date-chips-empty{font-size:12px;color:var(--text3);padding:4px 0}
 .cal-filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;min-height:20px}
 .cal-filter-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
 .cal-clear{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0}
@@ -393,48 +386,28 @@ async function loadHistTeam(){
 
 function renderCal(section){
   const st=calState[section];
-  const {year,month,selected,records}=st;
-  const daysWithEntries=new Set(records.map(r=>{
-    const d=new Date(r.created_at);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
-  }));
-  const today=new Date();
-  const todayKey=today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-  const firstDay=new Date(year,month,1).getDay();
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const monthName=new Date(year,month,1).toLocaleDateString('es-AR',{month:'long',year:'numeric'});
-  const dow=['D','L','M','X','J','V','S'];
-  let cells='';
-  for(let i=0;i<firstDay;i++)cells+='<div class="cal-day empty"></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const key=year+'-'+(month+1)+'-'+d;
+  const {selected,records}=st;
+  const DOW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  // get unique days that have entries, sorted desc
+  const seen=new Set();
+  const days=[];
+  records.forEach(r=>{
+    const d=new Date(r.created_at);
+    const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    if(!seen.has(key)){seen.add(key);days.push({key,d});}
+  });
+  days.sort((a,b)=>b.d-a.d);
+  if(!days.length)return'<div class="date-chips-wrap"><div class="date-chips-empty">Sin gastos este mes</div></div>';
+  const chips=days.map(({key,d})=>{
     const isSel=selected===key;
-    const isToday=key===todayKey;
-    const hasDot=daysWithEntries.has(key);
-    cells+='<div class="cal-day'+(isSel?' selected':'')+(isToday&&!isSel?' today':'')+(hasDot?' has-entry':'')+'" onclick="selectCalDay(\''+section+'\',\''+key+'\')">'+
-      '<span class="cal-dn">'+d+'</span>'+
-      '<span class="cal-dot'+(hasDot?'':' hidden')+'"></span>'+
+    return'<div class="date-chip'+(isSel?' selected':'')+'" onclick="selectCalDay(\''+section+'\',\''+key+'\')">'+
+      '<span class="date-chip-day">'+d.getDate()+'</span>'+
+      '<span class="date-chip-dow">'+DOW[d.getDay()]+'</span>'+
     '</div>';
-  }
-  return'<div class="cal-wrap">'+
-    '<div class="cal-header">'+
-      '<button class="cal-nav" onclick="calNav(\''+section+'\',-1)">‹</button>'+
-      '<span class="cal-month">'+monthName.charAt(0).toUpperCase()+monthName.slice(1)+'</span>'+
-      '<button class="cal-nav" onclick="calNav(\''+section+'\',1)">›</button>'+
-    '</div>'+
-    '<div class="cal-grid">'+
-      dow.map(d=>'<div class="cal-dow">'+d+'</div>').join('')+
-      cells+
-    '</div>'+
-  '</div>';
+  }).join('');
+  return'<div class="date-chips-wrap"><div class="date-chips-row">'+chips+'</div></div>';
 }
 
-function calNav(section,dir){
-  const st=calState[section];
-  let m=st.month+dir,y=st.year;
-  if(m>11){m=0;y++;}else if(m<0){m=11;y--;}
-  st.month=m;st.year=y;st.selected=null;
-  if(section==='vida')loadHistVida();else loadHistTeam();
-}
 
 function selectCalDay(section,key){
   const st=calState[section];
