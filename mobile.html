@@ -89,20 +89,38 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .edit-hist-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:12px;display:flex;align-items:center}
 .edit-hist-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* DATE CHIPS */
-.date-chips-wrap{margin-bottom:14px}
-.date-chips-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.date-chips-row::-webkit-scrollbar{display:none}
-.date-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;transition:background .15s}
-.date-chip.selected{background:var(--accent);border-color:var(--accent)}
-.date-chip.selected .chip-day{color:#fff}
-.date-chip.selected .chip-dow{color:rgba(255,255,255,.75)}
-.date-chip-day{font-size:15px;font-weight:700;color:var(--text)}
-.date-chip-dow{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase}
-.date-chips-empty{font-size:12px;color:var(--text3);padding:4px 0}
-.cal-filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;min-height:20px}
-.cal-filter-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
-.cal-clear{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0}
+/* FECHA BUTTON */
+.fecha-btn{width:100%;height:46px;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0 12px;font-size:14px;background:var(--bg3);color:var(--text2);display:flex;align-items:center;justify-content:space-between;cursor:pointer;text-align:left}
+.fecha-btn-arrow{font-size:11px;color:var(--text3)}
+
+/* CAL MODAL */
+.cal-modal{background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 16px 32px;width:100%;max-height:85vh;overflow-y:auto}
+.cal-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-modal-month{font-size:14px;font-weight:700;color:var(--text)}
+.cal-modal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:2px 10px;line-height:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-dow{font-size:9px;font-weight:700;color:var(--text3);text-align:center;padding-bottom:6px;text-transform:uppercase}
+.cal-cell{display:flex;flex-direction:column;align-items:center;padding:5px 2px;border-radius:8px;cursor:pointer;min-height:34px;gap:3px}
+.cal-cell:active{background:var(--bg3)}
+.cal-cell.selected{background:var(--accent)}
+.cal-cell.selected .cal-dn{color:#fff}
+.cal-cell.selected .cal-dot{background:#fff}
+.cal-cell.today:not(.selected) .cal-dn{color:var(--accent);font-weight:700}
+.cal-cell.empty{pointer-events:none}
+.cal-cell.no-entry{opacity:.35;cursor:default;pointer-events:none}
+.cal-dn{font-size:13px;color:var(--text);font-weight:500}
+.cal-dot{width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.cal-dot.hidden{visibility:hidden}
+.cal-day-entries{border-top:1px solid var(--border);padding-top:12px}
+.cal-day-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.cal-entry-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:6px}
+.cal-entry-desc{font-size:13px;font-weight:600;color:var(--text)}
+.cal-entry-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.cal-entry-right{display:flex;align-items:center;gap:8px}
+.cal-entry-amt{font-size:13px;font-weight:700;color:var(--text)}
+.cal-entry-edit{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;display:flex}
+.cal-entry-edit svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cal-no-entries{font-size:13px;color:var(--text3);text-align:center;padding:12px 0}
 
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200}
 .modal-overlay.open{display:flex;align-items:flex-end}
@@ -176,6 +194,14 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     <div id="edit-modal-body"></div>
     <button class="btn-modal-save" onclick="saveEdit()">Guardar cambios</button>
     <button class="btn-modal-cancel" onclick="closeEdit()">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cal-modal" onclick="if(event.target===this)closeCalModal()">
+  <div class="cal-modal">
+    <div class="modal-handle"></div>
+    <div id="cal-modal-body"></div>
+    <button class="btn-modal-cancel" style="margin-top:12px" onclick="closeCalModal()">Cerrar</button>
   </div>
 </div>
 
@@ -337,126 +363,161 @@ async function saveEdit(){
     closeEdit();
     if(editSection==='vida'||currentTab==='vida')loadHistVida();
     if(editSection==='team'||currentTab==='team')loadHistTeam();
+    if(calModal.section===editSection)loadCalModalMonth();
   }catch(e){showToast('Error: '+e.message);}
   btn.disabled=false;btn.textContent='Guardar cambios';
 }
 
 async function loadHistVida(){
-  const calEl=document.getElementById('cal-vida');
   const box=document.getElementById('hist-vida');
   if(!box)return;
-  const st=calState['vida'];
-  const from=new Date(st.year,st.month,1).toISOString();
-  const to=new Date(st.year,st.month+1,0,23,59,59).toISOString();
   try{
     const {data,error}=await sb.from('transacciones')
       .select('id,descripcion,valor,mes,metodo,fuente,cat,created_at')
-      .gte('created_at',from).lte('created_at',to)
-      .order('created_at',{ascending:false});
+      .order('created_at',{ascending:false}).limit(10);
     if(error)throw error;
+    calState.vida.allRecords=data;
     data.forEach(r=>{editCache[r.id]=r;});
-    st.records=data;
-    if(calEl)calEl.innerHTML=renderCal('vida');
-    renderHistList('vida');
+    if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos cargados aún</div>';return;}
+    box.innerHTML=data.map(r=>{
+      const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
+      const d=r.created_at?new Date(r.created_at):null;
+      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
+      const sub=(fechaStr?fechaStr+' · ')+(r.fuente||r.metodo||'');
+      return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
+    }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
 
 async function loadHistTeam(){
-  const calEl=document.getElementById('cal-team');
   const box=document.getElementById('hist-team');
   if(!box)return;
-  const st=calState['team'];
-  const from=new Date(st.year,st.month,1).toISOString();
-  const to=new Date(st.year,st.month+1,0,23,59,59).toISOString();
   try{
     const {data,error}=await sb.from('cuentas_movimientos')
       .select('id,descripcion,valor_ars,mes,creado_por,metodo,created_at')
-      .eq('cuenta','TEAM')
-      .gte('created_at',from).lte('created_at',to)
-      .order('created_at',{ascending:false});
+      .eq('cuenta','TEAM').order('created_at',{ascending:false}).limit(10);
     if(error)throw error;
+    calState.team.allRecords=data;
     data.forEach(r=>{editCache[r.id]=r;});
-    st.records=data;
-    const calEl2=document.getElementById('cal-team');
-    if(calEl2)calEl2.innerHTML=renderCal('team');
-    renderHistList('team');
+    if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos del team aún</div>';return;}
+    box.innerHTML=data.map(r=>{
+      const d=r.created_at?new Date(r.created_at):null;
+      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
+      const sub=(fechaStr?fechaStr+' · ')+(r.creado_por||'');
+      return histItem(r.id,'team','👥',r.descripcion||'–',sub,arsF(r.valor_ars));
+    }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
 
+/* ── CALENDAR MODAL ── */
+let calModal={section:null,year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]};
 
-function renderCal(section){
-  const st=calState[section];
-  const {selected,records}=st;
-  const DOW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  // get unique days that have entries, sorted desc
-  const seen=new Set();
-  const days=[];
-  records.forEach(r=>{
-    const d=new Date(r.created_at);
-    const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
-    if(!seen.has(key)){seen.add(key);days.push({key,d});}
-  });
-  days.sort((a,b)=>b.d-a.d);
-  if(!days.length)return'<div class="date-chips-wrap"><div class="date-chips-empty">Sin gastos este mes</div></div>';
-  const chips=days.map(({key,d})=>{
+async function openCalModal(section){
+  calModal.section=section;
+  calModal.selected=null;
+  const today=new Date();
+  calModal.year=today.getFullYear();
+  calModal.month=today.getMonth();
+  document.getElementById('cal-modal').classList.add('open');
+  await loadCalModalMonth();
+}
+
+function closeCalModal(){
+  document.getElementById('cal-modal').classList.remove('open');
+}
+
+async function loadCalModalMonth(){
+  const body=document.getElementById('cal-modal-body');
+  body.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Cargando...</div>';
+  const {section,year,month}=calModal;
+  const from=new Date(year,month,1).toISOString();
+  const to=new Date(year,month+1,0,23,59,59).toISOString();
+  try{
+    let q;
+    if(section==='vida'){
+      q=await sb.from('transacciones').select('id,descripcion,valor,mes,metodo,fuente,cat,created_at').gte('created_at',from).lte('created_at',to).order('created_at',{ascending:false});
+    }else{
+      q=await sb.from('cuentas_movimientos').select('id,descripcion,valor_ars,mes,creado_por,metodo,created_at').eq('cuenta','TEAM').gte('created_at',from).lte('created_at',to).order('created_at',{ascending:false});
+    }
+    if(q.error)throw q.error;
+    calModal.records=q.data||[];
+    q.data.forEach(r=>{editCache[r.id]=r;});
+    renderCalModal();
+  }catch(e){body.innerHTML='<div style="text-align:center;padding:20px;color:var(--red);font-size:13px">Error al cargar</div>';}
+}
+
+function renderCalModal(){
+  const {year,month,selected,records}=calModal;
+  const daysWithEntries=new Set(records.map(r=>{
+    const d=new Date(r.created_at);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  }));
+  const today=new Date();
+  const todayKey=today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const monthName=new Date(year,month,1).toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+  const DOW=['D','L','M','X','J','V','S'];
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=year+'-'+(month+1)+'-'+d;
     const isSel=selected===key;
-    return'<div class="date-chip'+(isSel?' selected':'')+'" onclick="selectCalDay(\''+section+'\',\''+key+'\')">'+
-      '<span class="date-chip-day">'+d.getDate()+'</span>'+
-      '<span class="date-chip-dow">'+DOW[d.getDay()]+'</span>'+
+    const isToday=key===todayKey;
+    const hasEntry=daysWithEntries.has(key);
+    cells+='<div class="cal-cell'+(isSel?' selected':'')+(isToday&&!isSel?' today':'')+(hasEntry?'':' no-entry')+'" onclick="selectCalModalDay(\''+key+'\')">'+
+      '<span class="cal-dn">'+d+'</span>'+
+      '<span class="cal-dot'+(hasEntry?'':' hidden')+'"></span>'+
     '</div>';
-  }).join('');
-  return'<div class="date-chips-wrap"><div class="date-chips-row">'+chips+'</div></div>';
-}
-
-
-function selectCalDay(section,key){
-  const st=calState[section];
-  st.selected=st.selected===key?null:key;
-  const calEl=document.getElementById('cal-'+section);
-  if(calEl)calEl.innerHTML=renderCal(section);
-  renderHistList(section);
-}
-
-function renderHistList(section){
-  const st=calState[section];
-  const box=document.getElementById('hist-'+section);
-  if(!box)return;
-  let records=st.records;
-  const filterLbl=document.getElementById('cal-filter-lbl-'+section);
-  if(st.selected){
-    const [y,m,d]=st.selected.split('-').map(Number);
-    records=records.filter(r=>{
-      const rd=new Date(r.created_at);
-      return rd.getFullYear()===y&&(rd.getMonth()+1)===m&&rd.getDate()===d;
-    });
-    if(filterLbl)filterLbl.innerHTML='<span class="cal-filter-lbl">'+formatSelDate(st.selected)+'</span><button class="cal-clear" onclick="clearCalSel(\''+section+'\')">Ver todos</button>';
-  }else{
-    if(filterLbl)filterLbl.innerHTML='<span class="cal-filter-lbl">Últimos cargados</span>';
   }
-  if(!records.length){box.innerHTML='<div class="hist-empty">Sin gastos para este día</div>';return;}
-  if(section==='vida'){
-    box.innerHTML=records.map(r=>{
-      const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
-      const d=r.created_at?new Date(r.created_at):null;
-      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
-      const sub=(fechaStr?fechaStr+' · ':'')+( r.fuente||r.metodo||'');
-      return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
-    }).join('');
-  }else{
-    box.innerHTML=records.map(r=>{
-      const d=r.created_at?new Date(r.created_at):null;
-      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
-      const sub=(fechaStr?fechaStr+' · ':'')+( r.creado_por||'');
-      return histItem(r.id,'team','👥',r.descripcion||'–',sub,arsF(r.valor_ars));
-    }).join('');
+  let entriesHtml='';
+  if(selected){
+    const [y,m,d]=selected.split('-').map(Number);
+    const dayRecords=records.filter(r=>{const rd=new Date(r.created_at);return rd.getFullYear()===y&&(rd.getMonth()+1)===m&&rd.getDate()===d;});
+    const dayLbl=new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+    entriesHtml='<div class="cal-day-entries">'+
+      '<div class="cal-day-lbl">'+dayLbl+'</div>'+
+      (dayRecords.length?dayRecords.map(r=>calEntryItem(r)).join(''):'<div class="cal-no-entries">Sin gastos este día</div>')+
+    '</div>';
   }
+  document.getElementById('cal-modal-body').innerHTML=
+    '<div class="cal-modal-header">'+
+      '<button class="cal-modal-nav" onclick="calModalNav(-1)">‹</button>'+
+      '<span class="cal-modal-month">'+monthName.charAt(0).toUpperCase()+monthName.slice(1)+'</span>'+
+      '<button class="cal-modal-nav" onclick="calModalNav(1)">›</button>'+
+    '</div>'+
+    '<div class="cal-grid">'+DOW.map(d=>'<div class="cal-dow">'+d+'</div>').join('')+cells+'</div>'+
+    entriesHtml;
 }
 
-function clearCalSel(section){calState[section].selected=null;const el=document.getElementById('cal-'+section);if(el)el.innerHTML=renderCal(section);renderHistList(section);}
+function selectCalModalDay(key){
+  calModal.selected=calModal.selected===key?null:key;
+  renderCalModal();
+}
 
-function formatSelDate(key){
-  const [y,m,d]=key.split('-').map(Number);
-  return new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+async function calModalNav(dir){
+  let m=calModal.month+dir,y=calModal.year;
+  if(m>11){m=0;y++;}else if(m<0){m=11;y--;}
+  calModal.month=m;calModal.year=y;calModal.selected=null;
+  await loadCalModalMonth();
+}
+
+function calEntryItem(r){
+  const isVida=calModal.section==='vida';
+  const amt=isVida?arsF(r.valor):arsF(r.valor_ars);
+  const sub=isVida?(r.fuente||r.metodo||''):(r.creado_por||'');
+  const icon=isVida?(r.metodo==='EFECTIVO'?'💵':'💳'):'👥';
+  return'<div class="cal-entry-item">'+
+    '<div>'+
+      '<div class="cal-entry-desc">'+icon+' '+(r.descripcion||'–')+'</div>'+
+      (sub?'<div class="cal-entry-sub">'+sub+'</div>':'')+
+    '</div>'+
+    '<div class="cal-entry-right">'+
+      '<span class="cal-entry-amt">'+amt+'</span>'+
+      '<button class="cal-entry-edit" onclick="closeCalModal();openEdit(\''+calModal.section+'\',\''+r.id+'\')">'+
+        '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'+
+      '</button>'+
+    '</div>'+
+  '</div>';
 }
 
 function mesOpts(selected){
@@ -475,7 +536,7 @@ function formVida(){
   const mes=mesActual();
   return'<div class="section-title">Nuevo gasto personal</div>'+
   '<div class="form-card">'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
+    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><button class="fecha-btn" onclick="openCalModal(\'vida\')" type="button"><span>'+fechaHoyStr()+'</span><span class="fecha-btn-arrow">▾ Ver historial</span></button></div>'+
     '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="v-desc" placeholder="Ej: Rappi, Netflix, YPF..."></div>'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="v-val" inputmode="numeric" placeholder="0"></div>'+
@@ -484,8 +545,7 @@ function formVida(){
     '<div class="ff" style="margin-bottom:16px"><label class="flabel">Fuente (tarjeta)</label><input class="minput" type="text" id="v-fuente" placeholder="AMEX, BBVA..."></div>'+
     '<button class="btn-save" onclick="saveVida()">✓ Guardar gasto</button>'+
   '</div>'+
-  '<div id="cal-vida"></div>'+
-  '<div class="cal-filter-bar" id="cal-filter-lbl-vida"><span class="cal-filter-lbl">Últimos cargados</span></div>'+
+  '<div class="hist-title">Últimos cargados</div>'+
   '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
 }
 
@@ -493,7 +553,7 @@ function formTeam(){
   const mes=mesActual();
   return'<div class="section-title">Nuevo gasto del team</div>'+
   '<div class="form-card">'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
+    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><button class="fecha-btn" onclick="openCalModal(\'team\')" type="button"><span>'+fechaHoyStr()+'</span><span class="fecha-btn-arrow">▾ Ver historial</span></button></div>'+
     '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="t-desc" placeholder="Ej: Almuerzo cliente, taxi..."></div>'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="t-val" inputmode="numeric" placeholder="0"></div>'+
@@ -501,8 +561,7 @@ function formTeam(){
     '</div>'+
     '<button class="btn-save" onclick="saveTeam()">✓ Guardar gasto</button>'+
   '</div>'+
-  '<div id="cal-team"></div>'+
-  '<div class="cal-filter-bar" id="cal-filter-lbl-team"><span class="cal-filter-lbl">Últimos cargados</span></div>'+
+  '<div class="hist-title">Últimos cargados</div>'+
   '<div class="hist-list" id="hist-team"><div class="hist-loading">Cargando...</div></div>';
 }
 
