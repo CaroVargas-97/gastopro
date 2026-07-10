@@ -381,10 +381,7 @@ function formVida(){
   const mes=mesActual();
   return'<div class="section-title">Nuevo gasto personal</div>'+
   '<div class="form-card">'+
-    '<div class="row2" style="margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="v-mes">'+mesOpts(mes)+'</select></div>'+
-      '<div class="ff"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
-    '</div>'+
+    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
     '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="v-desc" placeholder="Ej: Rappi, Netflix, YPF..."></div>'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="v-val" inputmode="numeric" placeholder="0"></div>'+
@@ -401,10 +398,7 @@ function formTeam(){
   const mes=mesActual();
   return'<div class="section-title">Nuevo gasto del team</div>'+
   '<div class="form-card">'+
-    '<div class="row2" style="margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="t-mes">'+mesOpts(mes)+'</select></div>'+
-      '<div class="ff"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
-    '</div>'+
+    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><div class="minput" style="background:var(--bg3);color:var(--text2);display:flex;align-items:center;font-size:14px">'+fechaHoyStr()+'</div></div>'+
     '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="t-desc" placeholder="Ej: Almuerzo cliente, taxi..."></div>'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="t-val" inputmode="numeric" placeholder="0"></div>'+
@@ -418,7 +412,7 @@ function formTeam(){
 
 
 async function saveVida(){
-  const mes=document.getElementById('v-mes').value;
+  const mes=mesActual();
   const cat=document.getElementById('v-cat').value;
   const desc=document.getElementById('v-desc').value.trim();
   const val=parseFloat(document.getElementById('v-val').value);
@@ -439,7 +433,7 @@ async function saveVida(){
 }
 
 async function saveTeam(){
-  const mes=document.getElementById('t-mes').value;
+  const mes=mesActual();
   const cat=document.getElementById('t-cat').value;
   const desc=document.getElementById('t-desc').value.trim();
   const val=parseFloat(document.getElementById('t-val').value);
