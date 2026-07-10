@@ -383,7 +383,7 @@ async function loadHistVida(){
       const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
       const d=r.created_at?new Date(r.created_at):null;
       const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
-      const sub=(fechaStr?fechaStr+' · ')+(r.fuente||r.metodo||'');
+      const sub=(fechaStr?fechaStr+' · ':'')+( r.fuente||r.metodo||'');
       return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
     }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
@@ -403,7 +403,7 @@ async function loadHistTeam(){
     box.innerHTML=data.map(r=>{
       const d=r.created_at?new Date(r.created_at):null;
       const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
-      const sub=(fechaStr?fechaStr+' · ')+(r.creado_por||'');
+      const sub=(fechaStr?fechaStr+' · ':'')+( r.creado_por||'');
       return histItem(r.id,'team','👥',r.descripcion||'–',sub,arsF(r.valor_ars));
     }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
