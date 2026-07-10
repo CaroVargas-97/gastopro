@@ -336,7 +336,9 @@ async function loadHistVida(){
     data.forEach(r=>{editCache[r.id]=r;});
     box.innerHTML=data.map(r=>{
       const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
-      const sub=(r.mes||'')+' · '+(r.fuente||r.metodo||'');
+      const d=r.created_at?new Date(r.created_at):null;
+      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
+      const sub=(fechaStr?fechaStr+' · ':'')+( r.fuente||r.metodo||'');
       return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
     }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
@@ -354,7 +356,9 @@ async function loadHistTeam(){
     if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos del team cargados aún</div>';return;}
     data.forEach(r=>{editCache[r.id]=r;});
     box.innerHTML=data.map(r=>{
-      const sub=(r.mes||'')+' · '+(r.creado_por||'');
+      const d=r.created_at?new Date(r.created_at):null;
+      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
+      const sub=(fechaStr?fechaStr+' · ':'')+( r.creado_por||'');
       return histItem(r.id,'team','👥',r.descripcion||'–',sub,arsF(r.valor_ars));
     }).join('');
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
