@@ -571,6 +571,7 @@ let historial=[];
 let charts={};
 let editingIdx=null;
 let currentUser=null;
+let pendingParsed=null;
 
 /* AUTH */
 async function init(){
@@ -1261,7 +1262,7 @@ async function handleFile(file){
     if(!Array.isArray(parsed)||!parsed.length){res.innerHTML='<div class="ai-box" style="color:var(--text3)">No encontré transacciones en este archivo.</div>';return;}
     const T=tc();
     const totalConsumos=parsed.reduce((s,t)=>s+(parseFloat(t.valor_ars)||0)+(parseFloat(t.valor_usd)||0)*T,0);
-    const enc=encodeURIComponent(JSON.stringify({arr:parsed,meta:{mes,card,anio,totalAbonadoARS,totalAbonadoUSD}}));
+    pendingParsed={arr:parsed,meta:{mes,card,anio,totalAbonadoARS,totalAbonadoUSD}};
     res.innerHTML='<div class="ai-box">'+
       '<div class="ai-head"><span class="ai-badge">✦ IA</span><span style="font-size:13px;font-weight:700;color:var(--text)">'+parsed.length+' transacciones encontradas</span></div>'+
       (totalAbonadoARS>0?'<div style="display:flex;gap:8px;margin-bottom:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap">'+
@@ -1289,27 +1290,53 @@ async function handleFile(file){
         }).length;
         return dupes>0?'<div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--amber-bg);border:1px solid var(--amber);border-radius:var(--radius-sm);margin-bottom:10px;font-size:12px;color:var(--amber)"><i class="ti ti-alert-triangle"></i> <strong>'+dupes+' posible'+(dupes>1?'s duplicados':'s duplicado')+'</strong> — revisá los marcados antes de importar</div>':'';
       })()+
-      parsed.slice(0,6).map(t=>{
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+        '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="toggleAllParsed(true)">Seleccionar todo</button>'+
+        '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="toggleAllParsed(false)">Ninguno</button>'+
+        '<span style="font-size:11px;color:var(--text3)" id="pr-count">'+parsed.length+' seleccionados</span>'+
+      '</div>'+
+      '<div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px">'+
+      parsed.map((t,i)=>{
         const va=parseFloat(t.valor_ars||0);const vu=parseFloat(t.valor_usd||0);
         const display=vu>0&&va===0?'U$S '+vu.toLocaleString('es-AR'):ars(va);
         const tMes=(t.mes||mes||'').toLowerCase();
         const isDupe=va>0&&data.some(d=>d.mes===tMes&&Math.abs(d.valor-va)<1);
         const dupeTag=isDupe?'<span style="font-size:9px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber);border-radius:4px;padding:1px 5px;flex-shrink:0">posible dup.</span>':'';
-        const rowStyle=isDupe?'background:var(--amber-bg);border-radius:6px;padding:8px 6px;margin:0 -6px;border-bottom:none':'';
-        return '<div class="parsed-row" style="'+rowStyle+'"><span class="pr-desc">'+(t.desc||'Sin descripción')+'</span><span class="badge '+(CATBADGE[t.cat||'OTROS']||'b-ot')+'" style="font-size:9px">'+(CATLAB[t.cat||'OTROS']||'Otros')+'</span>'+dupeTag+'<span class="pr-amt">'+display+'</span></div>';
+        const rowStyle=isDupe?'background:var(--amber-bg);border-radius:6px;padding:6px;margin:2px -4px':'';
+        return '<div class="parsed-row" style="'+rowStyle+'">'+
+          '<input type="checkbox" class="pr-chk" data-idx="'+i+'" checked style="flex-shrink:0;accent-color:var(--accent);width:15px;height:15px;cursor:pointer" onchange="updatePrCount()">'+
+          '<span class="pr-desc">'+(t.desc||'Sin descripción')+'</span>'+
+          '<span class="badge '+(CATBADGE[t.cat||'OTROS']||'b-ot')+'" style="font-size:9px">'+(CATLAB[t.cat||'OTROS']||'Otros')+'</span>'+
+          dupeTag+
+          '<span class="pr-amt">'+display+'</span>'+
+        '</div>';
       }).join('')+
-      (parsed.length>6?'<div style="font-size:11px;color:var(--text3);padding:8px 0">+ '+(parsed.length-6)+' más...</div>':'')+
-      '<button class="btn btn-accent" style="width:100%;margin-top:12px;padding:9px;justify-content:center" onclick="importParsed(\''+enc+'\')">'+
-      '<i class="ti ti-check"></i> Importar '+parsed.length+' transacciones</button></div>';
+      '</div>'+
+      '<button class="btn btn-accent" style="width:100%;margin-top:12px;padding:9px;justify-content:center" onclick="importParsed()">'+
+      '<i class="ti ti-check"></i> Importar <span id="pr-import-count">'+parsed.length+'</span> transacciones</button></div>';
   }catch(err){
     res.innerHTML='<div class="ai-box" style="color:var(--red)"><i class="ti ti-alert-circle"></i> '+err.message+'</div>';
   }
 }
 
-async function importParsed(enc){
-  const {arr,meta}=JSON.parse(decodeURIComponent(enc));
+function toggleAllParsed(checked){
+  document.querySelectorAll('.pr-chk').forEach(c=>c.checked=checked);
+  updatePrCount();
+}
+function updatePrCount(){
+  const n=document.querySelectorAll('.pr-chk:checked').length;
+  const countEl=document.getElementById('pr-count');
+  const importEl=document.getElementById('pr-import-count');
+  if(countEl)countEl.textContent=n+' seleccionados';
+  if(importEl)importEl.textContent=n;
+}
+async function importParsed(){
+  if(!pendingParsed)return;
+  const {arr,meta}=pendingParsed;
+  const checked=new Set([...document.querySelectorAll('.pr-chk:checked')].map(c=>parseInt(c.dataset.idx)));
+  const toImport=arr.filter((_,i)=>checked.has(i));
   const T=tc();let imported=0;
-  for(const t of arr){
+  for(const t of toImport){
     const valARS=parseFloat(t.valor_ars||0);
     const valUSD=parseFloat(t.valor_usd||0);
     if(!valARS&&!valUSD)continue;
@@ -1320,7 +1347,7 @@ async function importParsed(enc){
     await saveTransaction(row);
     imported++;
   }
-  const totalConsumos=arr.reduce((s,t)=>s+(parseFloat(t.valor_ars||0))+(parseFloat(t.valor_usd||0))*T,0);
+  const totalConsumos=toImport.reduce((s,t)=>s+(parseFloat(t.valor_ars||0))+(parseFloat(t.valor_usd||0))*T,0);
   const editTotalEl=document.getElementById('edit-total-ars');
   const editTotalUSDEl=document.getElementById('edit-total-usd');
   const totalAbonado=editTotalEl?parseFloat(editTotalEl.value)||0:parseFloat(meta.totalAbonadoARS)||0;
