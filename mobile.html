@@ -178,10 +178,6 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
       <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
       Vida
     </button>
-    <button class="nav-tab" onclick="goTab('team',this)" id="tab-team">
-      <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.85"/></svg>
-      Team
-    </button>
   </nav>
 </div>
 
@@ -212,7 +208,6 @@ const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const CATS_VIDA=['DEPARTAMENTO','TARJETAS','COMIDAS','AUTO','MOTO','VIAJES','SUSCRIPCIONES','CAJA CHICA ','OTROS'];
-const CATS_TEAM=['TEAM','MUN','OTROS'];
 const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA ':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones'};
 
 let currentUser=null;
@@ -221,7 +216,7 @@ let tcVal=1370;
 let editCache={};
 let editId=null;
 let editSection=null;
-let calState={vida:{year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]},team:{year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]}};
+let calState={vida:{year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]}};
 
 function mesActual(){return MESES[new Date().getMonth()];}
 
@@ -278,7 +273,6 @@ function goTab(tab,btn){
 function renderTab(tab){
   const el=document.getElementById('main-content');
   if(tab==='vida'){el.innerHTML=formVida();loadHistVida();}
-  else if(tab==='team'){el.innerHTML=formTeam();loadHistTeam();}
 }
 
 function togglePass(){
@@ -327,14 +321,6 @@ function openEdit(section,id){
         '<div class="ff"><label class="flabel">Método</label><select class="minput" id="em-met"><option value="CREDITO" '+(r.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="EFECTIVO" '+(r.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option></select></div>'+
         '<div class="ff"><label class="flabel">Fuente</label><input class="minput" id="em-fuente" value="'+(r.fuente||'')+'" placeholder="AMEX..."></div>'+
       '</div>';
-  }else{
-    title.textContent='Editar gasto del team';
-    body.innerHTML=
-      '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" id="em-desc" value="'+(r.descripcion||'')+'"></div>'+
-      '<div class="row2" style="margin-bottom:16px">'+
-        '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="em-mes">'+mesOpts(r.mes)+'</select></div>'+
-        '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="em-val" value="'+(r.valor_ars||0)+'"></div>'+
-      '</div>';
   }
   modal.classList.add('open');
 }
@@ -362,7 +348,6 @@ async function saveEdit(){
     showToast('✓ Cambios guardados');
     closeEdit();
     if(editSection==='vida'||currentTab==='vida')loadHistVida();
-    if(editSection==='team'||currentTab==='team')loadHistTeam();
     if(calModal.section===editSection)loadCalModalMonth();
   }catch(e){showToast('Error: '+e.message);}
   btn.disabled=false;btn.textContent='Guardar cambios';
@@ -389,25 +374,6 @@ async function loadHistVida(){
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
 
-async function loadHistTeam(){
-  const box=document.getElementById('hist-team');
-  if(!box)return;
-  try{
-    const {data,error}=await sb.from('cuentas_movimientos')
-      .select('id,descripcion,valor_ars,mes,creado_por,metodo,created_at')
-      .eq('cuenta','TEAM').order('created_at',{ascending:false}).limit(10);
-    if(error)throw error;
-    calState.team.allRecords=data;
-    data.forEach(r=>{editCache[r.id]=r;});
-    if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos del team aún</div>';return;}
-    box.innerHTML=data.map(r=>{
-      const d=r.created_at?new Date(r.created_at):null;
-      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
-      const sub=(fechaStr?fechaStr+' · ':'')+( r.creado_por||'');
-      return histItem(r.id,'team','👥',r.descripcion||'–',sub,arsF(r.valor_ars));
-    }).join('');
-  }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
-}
 
 /* ── CALENDAR MODAL ── */
 let calModal={section:null,year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]};
@@ -434,11 +400,7 @@ async function loadCalModalMonth(){
   const to=new Date(year,month+1,0,23,59,59).toISOString();
   try{
     let q;
-    if(section==='vida'){
-      q=await sb.from('transacciones').select('id,descripcion,valor,mes,metodo,fuente,cat,created_at').gte('created_at',from).lte('created_at',to).order('created_at',{ascending:false});
-    }else{
-      q=await sb.from('cuentas_movimientos').select('id,descripcion,valor_ars,mes,creado_por,metodo,created_at').eq('cuenta','TEAM').gte('created_at',from).lte('created_at',to).order('created_at',{ascending:false});
-    }
+    q=await sb.from('transacciones').select('id,descripcion,valor,mes,metodo,fuente,cat,created_at').gte('created_at',from).lte('created_at',to).order('created_at',{ascending:false});
     if(q.error)throw q.error;
     calModal.records=q.data||[];
     q.data.forEach(r=>{editCache[r.id]=r;});
@@ -549,22 +511,6 @@ function formVida(){
   '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
 }
 
-function formTeam(){
-  const mes=mesActual();
-  return'<div class="section-title">Nuevo gasto del team</div>'+
-  '<div class="form-card">'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><button class="fecha-btn" onclick="openCalModal(\'team\')" type="button"><span>'+fechaHoyStr()+'</span><span class="fecha-btn-arrow">▾ Ver historial</span></button></div>'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="t-desc" placeholder="Ej: Almuerzo cliente, taxi..."></div>'+
-    '<div class="row2" style="margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="t-val" inputmode="numeric" placeholder="0"></div>'+
-      '<div class="ff"><label class="flabel">Método</label><select class="minput" id="t-met"><option value="CREDITO">Crédito</option><option value="EFECTIVO">Efectivo</option></select></div>'+
-    '</div>'+
-    '<button class="btn-save" onclick="saveTeam()">✓ Guardar gasto</button>'+
-  '</div>'+
-  '<div class="hist-title">Últimos cargados</div>'+
-  '<div class="hist-list" id="hist-team"><div class="hist-loading">Cargando...</div></div>';
-}
-
 
 async function saveVida(){
   const mes=mesActual();
@@ -587,27 +533,6 @@ async function saveVida(){
   }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar gasto';}
 }
 
-async function saveTeam(){
-  const mes=mesActual();
-  const cat=document.getElementById('t-cat').value;
-  const desc=document.getElementById('t-desc').value.trim();
-  const val=parseFloat(document.getElementById('t-val').value);
-  const met=document.getElementById('t-met').value;
-  if(!desc||!val){showToast('Completá descripción y monto');return;}
-  const btn=document.querySelector('.btn-save');
-  btn.disabled=true;btn.textContent='Guardando...';
-  try{
-    await sb.from('cuentas_movimientos').insert({
-      cuenta:'TEAM',tipo:'GASTO',descripcion:desc.toUpperCase(),
-      valor_ars:val,valor_usd:parseFloat((val/tcVal).toFixed(2)),tc:tcVal,
-      mes,metodo:met,fecha:new Date().toISOString().split('T')[0],
-      creado_por:currentUser.email.split('@')[0]
-    });
-    showToast('✓ Gasto del team guardado');
-    renderTab('team');
-    loadHistTeam();
-  }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar gasto';}
-}
 
 
 function showToast(msg){
