@@ -121,6 +121,7 @@ body.dark .nav-item.active{background:rgba(91,78,255,.25);color:#a89fff}
 .b-via{background:#fdf4ff;color:#a21caf}.b-team{background:#ecfeff;color:#0e7490}
 .b-com{background:#fff7ed;color:#c2410c}.b-sus{background:#f5f3ff;color:#7c3aed}
 .b-mun{background:#f0fdfa;color:#0f766e}.b-inv{background:#fef2f2;color:#dc2626}
+.b-alu{background:#ecfdf5;color:#065f46}.b-flu{background:#e0f2fe;color:#0369a1}.b-slu{background:#fff1f2;color:#be123c}.b-sal{background:#faf5ff;color:#7e22ce}
 .b-ef{background:#f0fdf4;color:#15803d}.b-cr{background:#fff7ed;color:#c2410c}
 /* TABLE */
 .fsel{background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-size:12px;font-weight:500;padding:6px 10px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);outline:none}
@@ -536,10 +537,10 @@ const SUPA_KEY='sb_publishable_0XEjYVJ8j5Dlqa6SERapvA_VgOMLzWF';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const CATCOL={'DEPARTAMENTO':'#3b82f6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','MOTO':'#ef4444','CAJA CHICA ':'#16a34a','VIAJES':'#ec4899','TEAM':'#0891b2','COMIDAS':'#f97316','SUSCRIPCIONES':'#8b5cf6','MUN':'#0d9488','INVERSIONES':'#dc2626'};
-const CATBADGE={'DEPARTAMENTO':'b-dep','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','MOTO':'b-mot','CAJA CHICA ':'b-caj','VIAJES':'b-via','TEAM':'b-team','COMIDAS':'b-com','SUSCRIPCIONES':'b-sus','MUN':'b-mun','INVERSIONES':'b-inv'};
-const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA ':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones'};
-const CATS=['DEPARTAMENTO','TARJETAS','OTROS','AUTO','MOTO','CAJA CHICA ','VIAJES','TEAM','COMIDAS','SUSCRIPCIONES','MUN','INVERSIONES'];
+const CATCOL={'DEPARTAMENTO':'#3b82f6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','MOTO':'#ef4444','CAJA CHICA ':'#16a34a','VIAJES':'#ec4899','TEAM':'#0891b2','COMIDAS':'#f97316','SUSCRIPCIONES':'#8b5cf6','MUN':'#0d9488','INVERSIONES':'#dc2626','AMEX LUIS':'#10b981','FRANCES LUIS':'#0ea5e9','SANTANDER LUIS':'#f43f5e','SALUD':'#a855f7'};
+const CATBADGE={'DEPARTAMENTO':'b-dep','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','MOTO':'b-mot','CAJA CHICA ':'b-caj','VIAJES':'b-via','TEAM':'b-team','COMIDAS':'b-com','SUSCRIPCIONES':'b-sus','MUN':'b-mun','INVERSIONES':'b-inv','AMEX LUIS':'b-alu','FRANCES LUIS':'b-flu','SANTANDER LUIS':'b-slu','SALUD':'b-sal'};
+const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA ':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones','AMEX LUIS':'Amex Luis','FRANCES LUIS':'Francés Luis','SANTANDER LUIS':'Santander Luis','SALUD':'Salud'};
+const CATS=['DEPARTAMENTO','TARJETAS','OTROS','AUTO','MOTO','CAJA CHICA ','VIAJES','TEAM','COMIDAS','SUSCRIPCIONES','MUN','INVERSIONES','AMEX LUIS','FRANCES LUIS','SANTANDER LUIS','SALUD'];
 const PAGES={overview:'Dashboard',analisis:'Análisis',transacciones:'Transacciones',inversiones:'Inversiones',cargar:'Cargar datos',historial:'Historial',config:'Configuración'};
 const NAV_IDS=['overview','analisis','transacciones','inversiones','cargar','historial','config'];
 
