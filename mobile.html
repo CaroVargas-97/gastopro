@@ -134,6 +134,33 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .btn-modal-save{width:100%;height:52px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;box-shadow:var(--shadow-btn);transition:opacity .15s}
 .btn-modal-save:active{opacity:.9}
 .btn-modal-cancel{width:100%;height:48px;background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text2);font-size:15px;cursor:pointer;margin-top:10px;font-weight:500}
+
+/* SUMMARY CARD */
+.summary-card{background:var(--accent);border-radius:var(--radius);padding:24px 20px 22px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden}
+.summary-card::after{content:'';position:absolute;right:-20px;top:-20px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.07)}
+.sum-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.65;margin-bottom:8px}
+.sum-amt{font-size:38px;font-weight:700;letter-spacing:-1.5px;line-height:1;margin-bottom:6px}
+.sum-sub{font-size:12px;opacity:.55;font-weight:500}
+
+/* AMOUNT ROW */
+.amt-row{display:flex;align-items:center;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0 14px;margin-bottom:14px;transition:border-color .18s,box-shadow .18s}
+.amt-row:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.amt-prefix{font-size:22px;font-weight:700;color:var(--text3);padding-right:6px}
+.amt-input{flex:1;height:56px;border:none;outline:none;font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.5px;font-family:inherit;-webkit-appearance:none;background:transparent}
+
+/* HIST HEADER */
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin:24px 0 12px}
+.hist-search{height:36px;border:1.5px solid var(--border);border-radius:20px;padding:0 14px 0 10px;font-size:13px;background:#fff;color:var(--text);outline:none;width:130px;font-family:inherit;transition:border-color .18s}
+.hist-search:focus{border-color:var(--accent)}
+.hist-header-actions{display:flex;gap:8px;align-items:center}
+.cal-link{background:var(--bg3);border:none;border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* HIST ITEM */
+.hist-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.hist-btns{display:flex;gap:4px}
+.hist-btn{background:var(--bg3);border:none;border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center}
+.hist-btn.del{color:var(--red)}
+.hist-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head>
 <body>
@@ -298,15 +325,15 @@ function histItem(id,section,icon,desc,sub,amt){
     '<div class="hist-icon">'+icon+'</div>'+
     '<div class="hist-info">'+
       '<div class="hist-desc">'+desc+'</div>'+
-      '<div class="hist-sub">'+sub+'</div>'+
+      (sub?'<div class="hist-sub">'+sub+'</div>':'')+
     '</div>'+
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+
+    '<div class="hist-right">'+
       '<div class="hist-amt">'+amt+'</div>'+
-      '<div style="display:flex;gap:6px">'+
-        '<button class="edit-hist-btn" onclick="openEdit(\''+section+'\',\''+id+'\')">'+
+      '<div class="hist-btns">'+
+        '<button class="hist-btn" onclick="openEdit(\''+section+'\',\''+id+'\')">'+
           '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'+
         '</button>'+
-        '<button class="edit-hist-btn" style="color:#dc2626" onclick="deleteVida(\''+id+'\')">'+
+        '<button class="hist-btn del" onclick="deleteVida(\''+id+'\')">'+
           '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>'+
         '</button>'+
       '</div>'+
@@ -416,6 +443,7 @@ async function loadHistVida(){
     if(error)throw error;
     histVidaCache=data||[];
     data.forEach(r=>{editCache[r.id]=r;});
+    updateMesTotal();
     if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos cargados aún</div>';return;}
     const q=document.getElementById('hist-search')?.value||'';
     filterHist(q);
@@ -556,32 +584,55 @@ function fechaHoyStr(){
   return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 }
 
+function updateMesTotal(){
+  const mes=mesActual();
+  const filtered=histVidaCache.filter(r=>r.mes===mes);
+  const total=filtered.reduce((s,r)=>s+(r.valor||0),0);
+  const el=document.getElementById('mes-total');
+  const sub=document.getElementById('mes-count');
+  if(el)el.textContent=arsF(total);
+  if(sub)sub.textContent=filtered.length+' gasto'+(filtered.length!==1?'s':'')+' registrado'+(filtered.length!==1?'s':'');
+}
+
 function formVida(){
   const mes=mesActual();
+  const mesLabel=mes.charAt(0).toUpperCase()+mes.slice(1);
   const fuenteOpts=FUENTES.map(f=>'<option value="'+f+'">'+f+'</option>').join('');
-  return'<div class="section-title">Nuevo gasto personal</div>'+
-  '<div class="form-card">'+
-    '<div class="row2" style="margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="v-mes">'+mesOpts(mes)+'</select></div>'+
-      '<div class="ff" style="display:flex;align-items:flex-end"><button class="fecha-btn" onclick="openCalModal(\'vida\')" type="button" style="height:46px;font-size:12px;justify-content:center">📅 Ver historial</button></div>'+
+  return'<div class="summary-card">'+
+      '<div class="sum-label">Total · '+mesLabel+'</div>'+
+      '<div class="sum-amt" id="mes-total">—</div>'+
+      '<div class="sum-sub" id="mes-count">cargando...</div>'+
     '</div>'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="v-desc" placeholder="Ej: Rappi, Netflix, YPF..."></div>'+
-    '<div class="row2" style="margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="v-val" inputmode="numeric" placeholder="0"></div>'+
-      '<div class="ff"><label class="flabel">Método</label><select class="minput" id="v-met"><option value="CREDITO">Crédito</option><option value="EFECTIVO">Efectivo</option></select></div>'+
+    '<div class="form-card">'+
+      '<div class="ff"><label class="flabel">¿En qué gastaste?</label>'+
+        '<input class="minput" type="text" id="v-desc" placeholder="Rappi, Netflix, YPF..." autocomplete="off">'+
+      '</div>'+
+      '<label class="flabel">Monto</label>'+
+      '<div class="amt-row">'+
+        '<span class="amt-prefix">$</span>'+
+        '<input class="amt-input" type="number" id="v-val" inputmode="decimal" placeholder="0">'+
+      '</div>'+
+      '<div class="row2" style="margin-bottom:14px">'+
+        '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="v-mes">'+mesOpts(mes)+'</select></div>'+
+        '<div class="ff"><label class="flabel">Método</label><select class="minput" id="v-met"><option value="CREDITO">Crédito</option><option value="EFECTIVO">Efectivo</option></select></div>'+
+      '</div>'+
+      '<div class="row2" style="margin-bottom:14px">'+
+        '<div class="ff"><label class="flabel">Categoría</label><select class="minput" id="v-cat">'+catOpts(CATS_VIDA,'OTROS')+'</select></div>'+
+        '<div class="ff"><label class="flabel">Fuente</label><select class="minput" id="v-fuente"><option value="">—</option>'+fuenteOpts+'</select></div>'+
+      '</div>'+
+      '<div class="ff"><label class="flabel">Notas</label>'+
+        '<input class="minput" type="text" id="v-notas" placeholder="Detalle adicional (opcional)">'+
+      '</div>'+
+      '<button class="btn-save" onclick="saveVida()">Guardar gasto</button>'+
     '</div>'+
-    '<div class="row2" style="margin-bottom:12px">'+
-      '<div class="ff"><label class="flabel">Categoría</label><select class="minput" id="v-cat">'+catOpts(CATS_VIDA,'OTROS')+'</select></div>'+
-      '<div class="ff"><label class="flabel">Fuente (tarjeta)</label><select class="minput" id="v-fuente"><option value="">— sin fuente —</option>'+fuenteOpts+'</select></div>'+
+    '<div class="hist-header">'+
+      '<span class="hist-title">Recientes</span>'+
+      '<div class="hist-header-actions">'+
+        '<input class="hist-search" type="text" id="hist-search" placeholder="Buscar..." oninput="filterHist(this.value)">'+
+        '<button class="cal-link" onclick="openCalModal(\'vida\')" type="button">📅</button>'+
+      '</div>'+
     '</div>'+
-    '<div class="ff" style="margin-bottom:16px"><label class="flabel">Notas</label><input class="minput" type="text" id="v-notas" placeholder="Detalle adicional (opcional)..."></div>'+
-    '<button class="btn-save" onclick="saveVida()">✓ Guardar gasto</button>'+
-  '</div>'+
-  '<div style="display:flex;align-items:center;gap:8px;margin:20px 0 10px">'+
-    '<div class="hist-title" style="margin:0;flex:1">Últimos cargados</div>'+
-    '<input class="minput" type="text" id="hist-search" placeholder="🔍 Buscar..." oninput="filterHist(this.value)" style="width:150px;height:36px;font-size:13px">'+
-  '</div>'+
-  '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
+    '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
 }
 
 
