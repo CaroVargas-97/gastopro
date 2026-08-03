@@ -1242,8 +1242,8 @@ async function processZip(file){
       const b64=await toB64(pdfFile);
       const titularNote='\n\nIMPORTANTE: Este resumen tiene múltiples titulares. Extraé ÚNICAMENTE los consumos del titular "'+titular.toUpperCase()+'". Ignorá completamente los consumos de cualquier otro titular o adicional. Detectá el mes y año del resumen desde el contenido del PDF.';
       const promptFull=PROMPT+titularNote+' Tarjeta o servicio: '+card+'.';
-      const hdrs={'Content-Type':'application/json','anthropic-beta':'pdfs-2024-09-25'};
-      const body={model:'claude-haiku-4-5',max_tokens:8000,messages:[{role:'user',content:[
+      const hdrs={'Content-Type':'application/json'};
+      const body={model:'claude-haiku-4-5',max_tokens:8000,beta:'pdfs-2024-09-25',messages:[{role:'user',content:[
         {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
         {type:'text',text:promptFull}
       ]}]};
