@@ -208,6 +208,7 @@ const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const CATS_VIDA=['DEPARTAMENTO','TARJETAS','COMIDAS','AUTO','MOTO','VIAJES','SUSCRIPCIONES','CAJA CHICA ','OTROS','AMEX LUIS','FRANCES LUIS','SANTANDER LUIS','SALUD'];
+const FUENTES=['AMEX','FRANCES','SANTANDER','BBVA','AIDA','EFECTIVO','OTRA'];
 const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA ':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones','AMEX LUIS':'Amex Luis','FRANCES LUIS':'Francés Luis','SANTANDER LUIS':'Santander Luis','SALUD':'Salud'};
 
 let currentUser=null;
@@ -217,6 +218,7 @@ let editCache={};
 let editId=null;
 let editSection=null;
 let calState={vida:{year:new Date().getFullYear(),month:new Date().getMonth(),selected:null,records:[]}};
+let histVidaCache=[];
 
 function mesActual(){return MESES[new Date().getMonth()];}
 
@@ -324,9 +326,12 @@ function openEdit(section,id){
       '</div>'+
       '<div class="row2" style="margin-bottom:12px">'+
         '<div class="ff"><label class="flabel">Método</label><select class="minput" id="em-met"><option value="CREDITO" '+(r.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="EFECTIVO" '+(r.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option></select></div>'+
-        '<div class="ff"><label class="flabel">Fuente</label><input class="minput" id="em-fuente" value="'+(r.fuente||'')+'" placeholder="AMEX..."></div>'+
+        '<div class="ff"><label class="flabel">Fuente</label><select class="minput" id="em-fuente"><option value="">— sin fuente —</option>'+FUENTES.map(f=>'<option value="'+f+'" '+(r.fuente===f?'selected':'')+'>'+f+'</option>').join('')+'</select></div>'+
       '</div>'+
-      '<div class="ff" style="margin-bottom:16px"><label class="flabel">Categoría</label><select class="minput" id="em-cat">'+catOpts(CATS_VIDA,r.cat||'OTROS')+'</select></div>';
+      '<div class="row2" style="margin-bottom:12px">'+
+        '<div class="ff"><label class="flabel">Categoría</label><select class="minput" id="em-cat">'+catOpts(CATS_VIDA,r.cat||'OTROS')+'</select></div>'+
+        '<div class="ff"><label class="flabel">Notas</label><input class="minput" id="em-notas" value="'+(r.notas||'')+'" placeholder="Detalle..."></div>'+
+      '</div>';
   }
   modal.classList.add('open');
 }
@@ -346,9 +351,10 @@ async function saveEdit(){
   try{
     if(editSection==='vida'){
       const met=document.getElementById('em-met').value;
-      const fuente=document.getElementById('em-fuente').value.trim();
+      const fuente=document.getElementById('em-fuente').value;
       const cat=document.getElementById('em-cat').value;
-      await sb.from('transacciones').update({descripcion:desc,mes,metodo:met,valor:val,usd:val/tcVal,fuente,cat}).eq('id',editId);
+      const notas=document.getElementById('em-notas').value.trim();
+      await sb.from('transacciones').update({descripcion:desc,mes,metodo:met,valor:val,usd:val/tcVal,fuente,cat,notas:notas||null}).eq('id',editId);
     }else{
       await sb.from('cuentas_movimientos').update({descripcion:desc,mes,valor_ars:val,valor_usd:parseFloat((val/tcVal).toFixed(2))}).eq('id',editId);
     }
@@ -371,24 +377,43 @@ async function deleteVida(id){
   }catch(e){showToast('Error: '+e.message);}
 }
 
+function renderHistItems(list){
+  const box=document.getElementById('hist-vida');
+  if(!box)return;
+  if(!list.length){box.innerHTML='<div class="hist-empty">Sin resultados</div>';return;}
+  box.innerHTML=list.map(r=>{
+    const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
+    const d=r.created_at?new Date(r.created_at):null;
+    const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
+    const sub=(fechaStr?fechaStr+' · ':'')+[r.fuente,r.notas].filter(Boolean).join(' · ');
+    return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
+  }).join('');
+}
+
+function filterHist(q){
+  const lq=(q||'').toLowerCase();
+  const filtered=lq?histVidaCache.filter(r=>
+    (r.descripcion||'').toLowerCase().includes(lq)||
+    (r.fuente||'').toLowerCase().includes(lq)||
+    (r.notas||'').toLowerCase().includes(lq)||
+    (r.cat||'').toLowerCase().includes(lq)
+  ):histVidaCache;
+  renderHistItems(filtered);
+}
+
 async function loadHistVida(){
   const box=document.getElementById('hist-vida');
   if(!box)return;
   try{
     const {data,error}=await sb.from('transacciones')
-      .select('id,descripcion,valor,mes,metodo,fuente,cat,created_at')
-      .order('created_at',{ascending:false}).limit(10);
+      .select('id,descripcion,valor,mes,metodo,fuente,cat,notas,created_at')
+      .order('created_at',{ascending:false}).limit(50);
     if(error)throw error;
-    calState.vida.allRecords=data;
+    histVidaCache=data||[];
     data.forEach(r=>{editCache[r.id]=r;});
     if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos cargados aún</div>';return;}
-    box.innerHTML=data.map(r=>{
-      const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
-      const d=r.created_at?new Date(r.created_at):null;
-      const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
-      const sub=(fechaStr?fechaStr+' · ':'')+( r.fuente||r.metodo||'');
-      return histItem(r.id,'vida',metIcon,r.descripcion||'–',sub,arsF(r.valor));
-    }).join('');
+    const q=document.getElementById('hist-search')?.value||'';
+    filterHist(q);
   }catch(e){if(box)box.innerHTML='<div class="hist-empty">Error al cargar</div>';}
 }
 
@@ -418,7 +443,7 @@ async function loadCalModalMonth(){
   const to=new Date(year,month+1,0,23,59,59).toISOString();
   try{
     let q;
-    q=await sb.from('transacciones').select('id,descripcion,valor,mes,metodo,fuente,cat,created_at').gte('created_at',from).lte('created_at',to).order('created_at',{ascending:false});
+    q=await sb.from('transacciones').select('id,descripcion,valor,mes,metodo,fuente,cat,notas,created_at').gte('created_at',from).lte('created_at',to).order('created_at',{ascending:false});
     if(q.error)throw q.error;
     calModal.records=q.data||[];
     q.data.forEach(r=>{editCache[r.id]=r;});
@@ -514,9 +539,13 @@ function fechaHoyStr(){
 
 function formVida(){
   const mes=mesActual();
+  const fuenteOpts=FUENTES.map(f=>'<option value="'+f+'">'+f+'</option>').join('');
   return'<div class="section-title">Nuevo gasto personal</div>'+
   '<div class="form-card">'+
-    '<div class="ff" style="margin-bottom:12px"><label class="flabel">Fecha</label><button class="fecha-btn" onclick="openCalModal(\'vida\')" type="button"><span>'+fechaHoyStr()+'</span><span class="fecha-btn-arrow">▾ Ver historial</span></button></div>'+
+    '<div class="row2" style="margin-bottom:12px">'+
+      '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="v-mes">'+mesOpts(mes)+'</select></div>'+
+      '<div class="ff" style="display:flex;align-items:flex-end"><button class="fecha-btn" onclick="openCalModal(\'vida\')" type="button" style="height:46px;font-size:12px;justify-content:center">📅 Ver historial</button></div>'+
+    '</div>'+
     '<div class="ff" style="margin-bottom:12px"><label class="flabel">Descripción</label><input class="minput" type="text" id="v-desc" placeholder="Ej: Rappi, Netflix, YPF..."></div>'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="v-val" inputmode="numeric" placeholder="0"></div>'+
@@ -524,29 +553,34 @@ function formVida(){
     '</div>'+
     '<div class="row2" style="margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Categoría</label><select class="minput" id="v-cat">'+catOpts(CATS_VIDA,'OTROS')+'</select></div>'+
-      '<div class="ff"><label class="flabel">Fuente (tarjeta)</label><input class="minput" type="text" id="v-fuente" placeholder="AMEX, BBVA..."></div>'+
+      '<div class="ff"><label class="flabel">Fuente (tarjeta)</label><select class="minput" id="v-fuente"><option value="">— sin fuente —</option>'+fuenteOpts+'</select></div>'+
     '</div>'+
+    '<div class="ff" style="margin-bottom:16px"><label class="flabel">Notas</label><input class="minput" type="text" id="v-notas" placeholder="Detalle adicional (opcional)..."></div>'+
     '<button class="btn-save" onclick="saveVida()">✓ Guardar gasto</button>'+
   '</div>'+
-  '<div class="hist-title">Últimos cargados</div>'+
+  '<div style="display:flex;align-items:center;gap:8px;margin:20px 0 10px">'+
+    '<div class="hist-title" style="margin:0;flex:1">Últimos cargados</div>'+
+    '<input class="minput" type="text" id="hist-search" placeholder="🔍 Buscar..." oninput="filterHist(this.value)" style="width:150px;height:36px;font-size:13px">'+
+  '</div>'+
   '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
 }
 
 
 async function saveVida(){
-  const mes=mesActual();
+  const mes=document.getElementById('v-mes').value;
   const cat=document.getElementById('v-cat').value;
   const desc=document.getElementById('v-desc').value.trim();
   const val=parseFloat(document.getElementById('v-val').value);
   const met=document.getElementById('v-met').value;
-  const fuente=document.getElementById('v-fuente').value.trim();
+  const fuente=document.getElementById('v-fuente').value;
+  const notas=document.getElementById('v-notas').value.trim();
   if(!desc||!val){showToast('Completá descripción y monto');return;}
   const btn=document.querySelector('.btn-save');
   btn.disabled=true;btn.textContent='Guardando...';
   try{
     await sb.from('transacciones').insert({
       user_id:currentUser.id,mes,descripcion:desc.toUpperCase(),
-      metodo:met,valor:val,usd:val/tcVal,cat,fuente
+      metodo:met,valor:val,usd:val/tcVal,cat,fuente,notas:notas||null
     });
     showToast('✓ Gasto guardado');
     renderTab('vida');
