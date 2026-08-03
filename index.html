@@ -367,9 +367,11 @@ tr:hover .action-btns{opacity:1}
           <select class="fsel" id="fMet" onchange="renderTx()">
             <option value="">Todos los métodos</option><option>EFECTIVO</option><option>CREDITO</option>
           </select>
+          <select class="fsel" id="fFuente" onchange="renderTx()"><option value="">Todas las fuentes</option></select>
           <input class="fsearch" id="fText" placeholder="🔍 Buscar..." oninput="renderTx()">
           <span id="tx-count" style="font-size:11px;font-weight:600;color:var(--text3);align-self:center"></span>
-          <button class="btn btn-danger" onclick="borrarTodo()" style="margin-left:auto"><i class="ti ti-trash" style="font-size:13px"></i> Borrar todo</button>
+          <button class="btn btn-danger" onclick="borrarFiltrados()" style="margin-left:auto" id="btn-borrar-filtrados"><i class="ti ti-trash" style="font-size:13px"></i> Borrar filtrados</button>
+          <button class="btn btn-danger" onclick="borrarTodo()"><i class="ti ti-trash" style="font-size:13px"></i> Borrar todo</button>
         </div>
         <div id="tx-mes-summary" style="margin-bottom:12px"></div>
         <div class="card" style="padding:0;overflow:hidden">
@@ -1056,6 +1058,12 @@ function populateMesFilter(){
   const fm=document.getElementById('fMes');
   while(fm.options.length>1)fm.remove(1);
   mesesActivos().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.charAt(0).toUpperCase()+m.slice(1);fm.appendChild(o);});
+  const ff=document.getElementById('fFuente');
+  const prev=ff.value;
+  while(ff.options.length>1)ff.remove(1);
+  const fuentes=[...new Set(data.map(t=>t.fuente||'').filter(Boolean))].sort();
+  fuentes.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;ff.appendChild(o);});
+  if(fuentes.includes(prev))ff.value=prev;
 }
 
 function renderTx(){
@@ -1085,9 +1093,10 @@ function renderTx(){
   }
   const cat=document.getElementById('fCat').value;
   const met=document.getElementById('fMet').value;
+  const fuente=document.getElementById('fFuente').value;
   const txt=(document.getElementById('fText').value||'').toLowerCase();
   const filtered=[];
-  data.forEach((t,i)=>{if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&(!txt||(t.desc||'').toLowerCase().includes(txt)))filtered.push(i);});
+  data.forEach((t,i)=>{if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&(!fuente||t.fuente===fuente)&&(!txt||(t.desc||'').toLowerCase().includes(txt)))filtered.push(i);});
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
   const rows=filtered.map(di=>{
@@ -1166,6 +1175,24 @@ async function addManual(){
   await saveTransaction(t);
   document.getElementById('mDesc').value='';document.getElementById('mVal').value='';
   showToast('Gasto agregado');go('overview');
+}
+
+async function borrarFiltrados(){
+  const mes=document.getElementById('fMes').value;
+  const cat=document.getElementById('fCat').value;
+  const met=document.getElementById('fMet').value;
+  const fuente=document.getElementById('fFuente').value;
+  const txt=(document.getElementById('fText').value||'').toLowerCase();
+  const toDelete=data.filter(t=>(!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&(!fuente||t.fuente===fuente)&&(!txt||(t.desc||'').toLowerCase().includes(txt)));
+  if(!toDelete.length){showToast('No hay transacciones con ese filtro');return;}
+  if(!confirm('¿Borrar '+toDelete.length+' transacciones filtradas? Esta acción no se puede deshacer.'))return;
+  setSyncStatus('saving');
+  try{
+    const ids=toDelete.map(t=>t._id).filter(Boolean);
+    if(ids.length)await sb.from('transacciones').delete().in('id',ids);
+    data=data.filter(t=>!ids.includes(t._id));
+    setSyncStatus('ok');populateMesFilter();updateSubtitle();renderTx();showToast('✓ '+ids.length+' transacciones eliminadas');
+  }catch(e){setSyncStatus('error');showToast('Error: '+e.message);}
 }
 
 async function borrarTodo(){
@@ -1262,7 +1289,11 @@ async function processZip(file){
           if(!valARS&&!valUSD)continue;
           const finalARS=valARS>0?valARS:Math.round(valUSD*T);
           const finalUSD=valUSD>0?valUSD:parseFloat((valARS/T).toFixed(2));
-          const row={mes:(t.mes||'enero').toLowerCase(),desc:(t.desc||'SIN DESCRIPCION').toUpperCase(),metodo:(t.metodo||'EFECTIVO').toUpperCase(),valor:finalARS,usd:finalUSD,cat:t.cat||'OTROS',fuente:card};
+          const desc=(t.desc||'SIN DESCRIPCION').toUpperCase();
+          const mes=(t.mes||'enero').toLowerCase();
+          const dup=data.some(d=>d.desc===desc&&d.valor===finalARS&&d.mes===mes&&d.fuente===card);
+          if(dup)continue;
+          const row={mes,desc,metodo:(t.metodo||'EFECTIVO').toUpperCase(),valor:finalARS,usd:finalUSD,cat:t.cat||'OTROS',fuente:card};
           data.push(row);await saveTransaction(row);imported++;cnt++;
         }
         log.push('✓ '+fname+' — '+cnt+' gastos');
