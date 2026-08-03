@@ -421,6 +421,7 @@ tr:hover .action-btns{opacity:1}
                 </div>
                 <div class="ff"><label class="flabel">Año</label><select class="finput" id="dz-anio"><option>2025</option><option selected>2026</option></select></div>
               </div>
+              <div class="ff"><label class="flabel">Filtrar por titular (opcional)</label><input class="finput" id="dz-titular" type="text" placeholder="Ej: GUILLERMO SCAGLIA — deja vacío para importar todos"></div>
               <div class="dz-wrapper">
                 <div class="dropzone" id="dz">
                   <i class="ti ti-cloud-upload dz-icon" id="dz-icon"></i>
@@ -1223,7 +1224,9 @@ async function handleFile(file){
     const isImg=file.type.startsWith('image/');
     const hdrs={'Content-Type':'application/json'};
     let body;
-    const promptFull=PROMPT+(mes?' El resumen corresponde al mes de '+mes+' '+anio+'.':('' ))+(card?' Tarjeta o servicio: '+card+'.':('' ));
+    const titular=(document.getElementById('dz-titular').value||'').trim();
+    const titularNote=titular?'\n\nIMPORTANTE: Este resumen tiene múltiples titulares (titular + adicionales). Extraé ÚNICAMENTE los consumos del titular "'+titular.toUpperCase()+'". Ignorá completamente todos los consumos de cualquier otro titular o adicional que aparezca en el resumen.':'';
+    const promptFull=PROMPT+titularNote+(mes?' El resumen corresponde al mes de '+mes+' '+anio+'.':('' ))+(card?' Tarjeta o servicio: '+card+'.':('' ));
     if(isPDF||isImg){
       const b64=await toB64(file);
       if(isPDF)hdrs['anthropic-beta']='pdfs-2024-09-25';
