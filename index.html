@@ -1217,8 +1217,12 @@ async function processZip(file){
   const titular=(document.getElementById('dz-titular').value||'').trim();
   if(!titular){showToast('Completá el nombre del titular antes de subir el ZIP');return;}
   const res=document.getElementById('ai-res');
+  res.innerHTML='<div class="ai-box"><div class="ai-spin"><div class="spinner"></div>Leyendo ZIP...</div></div>';
+  let zipData;
+  try{zipData=await file.arrayBuffer();}catch(e){res.innerHTML='<div class="ai-box" style="color:var(--red)">No se pudo leer el archivo: '+e.message+'</div>';return;}
+  if(typeof JSZip==='undefined'){res.innerHTML='<div class="ai-box" style="color:var(--red)">Librería ZIP no cargada — recargá la página</div>';return;}
   let zip;
-  try{zip=await JSZip.loadAsync(file);}catch(e){res.innerHTML='<div class="ai-box" style="color:var(--red)">Error al leer el ZIP: '+e.message+'</div>';return;}
+  try{zip=await JSZip.loadAsync(zipData);}catch(e){res.innerHTML='<div class="ai-box" style="color:var(--red)">Error al leer el ZIP: '+e.message+'</div>';return;}
   const pdfs=Object.values(zip.files).filter(f=>!f.dir&&f.name.toLowerCase().endsWith('.pdf'));
   if(!pdfs.length){res.innerHTML='<div class="ai-box" style="color:var(--red)">No encontré PDFs en el ZIP</div>';return;}
   const card=(document.getElementById('dz-card').value||file.name.replace(/\.zip$/i,'').replace(/_/g,' ')).toUpperCase();
