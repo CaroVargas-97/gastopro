@@ -1267,7 +1267,7 @@ async function processZip(file){
         }
         log.push('✓ '+fname+' — '+cnt+' gastos');
       }else{log.push('— '+fname+' — sin gastos de '+titular);}
-    }catch(e){errors++;log.push('✗ '+fname+' — error');console.warn(fname,e);}
+    }catch(e){errors++;log.push('✗ '+fname+' — '+e.message);console.warn(fname,e);}
     await new Promise(r=>setTimeout(r,400));
   }
   res.innerHTML='<div class="ai-box">'+
