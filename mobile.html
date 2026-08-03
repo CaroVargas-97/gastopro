@@ -479,8 +479,12 @@ function renderCalModal(){
     const [y,m,d]=selected.split('-').map(Number);
     const dayRecords=records.filter(r=>{const rd=new Date(r.created_at);return rd.getFullYear()===y&&(rd.getMonth()+1)===m&&rd.getDate()===d;});
     const dayLbl=new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+    const mesDia=MESES[m-1];
     entriesHtml='<div class="cal-day-entries">'+
-      '<div class="cal-day-lbl">'+dayLbl+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+        '<div class="cal-day-lbl" style="margin:0">'+dayLbl+'</div>'+
+        '<button onclick="addGastoForDate(\''+mesDia+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">＋ Agregar</button>'+
+      '</div>'+
       (dayRecords.length?dayRecords.map(r=>calEntryItem(r)).join(''):'<div class="cal-no-entries">Sin gastos este día</div>')+
     '</div>';
   }
@@ -523,6 +527,16 @@ function calEntryItem(r){
       '</button>'+
     '</div>'+
   '</div>';
+}
+
+function addGastoForDate(mes){
+  closeCalModal();
+  setTimeout(()=>{
+    const sel=document.getElementById('v-mes');
+    if(sel){sel.value=mes;}
+    const d=document.getElementById('v-desc');
+    if(d){d.focus();d.scrollIntoView({behavior:'smooth',block:'center'});}
+  },300);
 }
 
 function mesOpts(selected){
