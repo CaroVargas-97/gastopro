@@ -649,8 +649,17 @@ async function saveVida(){
   const notas=document.getElementById('v-notas').value.trim();
   if(!desc||!val){showToast('Completá descripción y monto');return;}
   const btn=document.querySelector('.btn-save');
-  btn.disabled=true;btn.textContent='Guardando...';
+  btn.disabled=true;btn.textContent='Verificando...';
   try{
+    if(fuente&&val){
+      const {data:existing}=await sb.from('transacciones').select('descripcion').eq('user_id',currentUser.id).eq('mes',mes).eq('valor',val).eq('fuente',fuente).limit(1);
+      if(existing&&existing.length>0){
+        const dupDesc=existing[0].descripcion;
+        const ok=confirm('⚠️ Ya existe un gasto de $'+val.toLocaleString('es-AR')+' en '+mes+' con '+fuente+':\n"'+dupDesc+'"\n\n¿Querés guardarlo igual?');
+        if(!ok){btn.disabled=false;btn.textContent='Guardar gasto';return;}
+      }
+    }
+    btn.textContent='Guardando...';
     await sb.from('transacciones').insert({
       user_id:currentUser.id,mes,descripcion:desc.toUpperCase(),
       metodo:met,valor:val,usd:val/tcVal,cat,fuente,notas:notas||null

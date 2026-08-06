@@ -1099,11 +1099,17 @@ function renderTx(){
   data.forEach((t,i)=>{if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&(!fuente||t.fuente===fuente)&&(!txt||(t.desc||'').toLowerCase().includes(txt)))filtered.push(i);});
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
+  const dupKeys=new Set();
+  const keyCount={};
+  data.forEach(t=>{if(t.fuente){const k=t.mes+'|'+t.valor+'|'+t.fuente;keyCount[k]=(keyCount[k]||0)+1;}});
+  Object.entries(keyCount).forEach(([k,c])=>{if(c>1)dupKeys.add(k);});
   const rows=filtered.map(di=>{
     const t=data[di];const usdVal=t.valor/T;
-    return '<tr>'+
+    const isDup=t.fuente&&dupKeys.has(t.mes+'|'+t.valor+'|'+t.fuente);
+    const dupIcon=isDup?'<span title="Posible duplicado: mismo monto, mes y fuente" style="color:var(--amber);margin-left:4px;cursor:help">⚠️</span>':'';
+    return '<tr'+(isDup?' style="background:var(--amber-bg)"':'')+'>'+
       '<td style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
-      '<td class="td-desc">'+t.desc+'</td>'+
+      '<td class="td-desc">'+t.desc+dupIcon+'</td>'+
       '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
       '<td style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
       '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':'Crédito')+'</span></td>'+
