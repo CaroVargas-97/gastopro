@@ -1068,7 +1068,8 @@ function populateMesFilter(){
   while(ff.options.length>1)ff.remove(1);
   const fuentes=[...new Set(data.map(t=>t.fuente||'').filter(Boolean))].sort();
   fuentes.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;ff.appendChild(o);});
-  if(fuentes.includes(prev))ff.value=prev;
+  if(data.some(t=>!t.fuente)){const o=document.createElement('option');o.value='__sin_fuente__';o.textContent='(sin fuente)';ff.appendChild(o);}
+  if(fuentes.includes(prev)||prev==='__sin_fuente__')ff.value=prev;
 }
 
 function renderTx(){
@@ -1101,7 +1102,10 @@ function renderTx(){
   const fuente=document.getElementById('fFuente').value;
   const txt=(document.getElementById('fText').value||'').toLowerCase();
   const filtered=[];
-  data.forEach((t,i)=>{if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&(!fuente||t.fuente===fuente)&&(!txt||(t.desc||'').toLowerCase().includes(txt)))filtered.push(i);});
+  data.forEach((t,i)=>{
+    const fuenteOk=!fuente||(fuente==='__sin_fuente__'?!t.fuente:t.fuente===fuente);
+    if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fuenteOk&&(!txt||(t.desc||'').toLowerCase().includes(txt)))filtered.push(i);
+  });
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
   const STOP=new Set(['DE','EL','LA','LOS','LAS','EN','Y','A','AL','DEL','UN','UNA','CON','POR','PARA','SE','SU','QUE','ES','SON','SA','SRL','VIAJE','PAGO','COMPRA','CUOTA']);
@@ -1222,7 +1226,7 @@ function renderCargaSummary(){
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
         '<span style="font-size:13px;font-weight:600;color:var(--text);flex:1">'+f+'</span>'+
         '<span style="font-size:11px;font-weight:700;color:var(--accent)">'+g.count+' gastos</span>'+
-        '<button class="btn" style="font-size:11px;padding:3px 8px" onclick="document.getElementById(\'fFuente\').value=\''+f+'\';go(\'transacciones\')"><i class="ti ti-eye"></i> Ver</button>'+
+        '<button class="btn" style="font-size:11px;padding:3px 8px" onclick="document.getElementById(\'fFuente\').value=\''+(f==='(sin fuente)'?'__sin_fuente__':f)+'\';go(\'transacciones\')"><i class="ti ti-eye"></i> Ver</button>'+
       '</div>'+
       '<div style="display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div>'+
     '</div>';
