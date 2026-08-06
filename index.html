@@ -647,7 +647,7 @@ async function loadData(){
       sb.from('transacciones').select('*').order('created_at',{ascending:true}),
       sb.from('historial').select('*').order('saved_at',{ascending:false})
     ]);
-    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:r.fuente||'',creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
     historial=(histRes.data||[]).map(r=>({id:r.id,card:r.card,mes:r.mes,anio:r.anio,count:r.cantidad,total:parseFloat(r.total)||0,totalAbonado:parseFloat(r.total_abonado)||0,totalAbonadoUSD:parseFloat(r.total_abonado_usd)||0,savedAt:new Date(r.saved_at).toLocaleDateString('es-AR')}));
     document.getElementById('hist-badge').textContent=historial.length;
     setSyncStatus('ok');
@@ -1212,7 +1212,7 @@ function renderCargaSummary(){
   const MABR=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const grupos={};
   data.forEach(t=>{
-    const f=t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'(sin fuente)');
+    const f=(t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'')).toUpperCase()||'(sin fuente)';
     if(!grupos[f])grupos[f]={count:0,meses:new Set()};
     grupos[f].count++;
     grupos[f].meses.add(t.mes);
