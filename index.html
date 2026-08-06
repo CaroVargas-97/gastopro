@@ -1468,6 +1468,7 @@ async function handleFile(file){
       '</div>'+
       '<button class="btn btn-accent" style="width:100%;margin-top:12px;padding:9px;justify-content:center" onclick="importParsed()">'+
       '<i class="ti ti-check"></i> Importar <span id="pr-import-count">'+parsed.length+'</span> transacciones</button></div>';
+    updatePrCount();
   }catch(err){
     res.innerHTML='<div class="ai-box" style="color:var(--red)"><i class="ti ti-alert-circle"></i> '+err.message+'</div>';
   }
