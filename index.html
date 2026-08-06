@@ -1437,7 +1437,8 @@ async function handleFile(file){
         '<span style="font-size:12px;color:var(--text2)">USD</span>'+
       '</div>')+
       (function(){
-        const dupes=parsed.filter(t=>{const va=parseFloat(t.valor_ars||0);const tMes=(t.mes||mes||'').toLowerCase();return va>0&&data.some(d=>d.mes===tMes&&Math.abs(d.valor-va)<1);}).length;
+        const cardUp=card.toUpperCase();
+        const dupes=parsed.filter(t=>{const va=parseFloat(t.valor_ars||0);const tMes=(t.mes||mes||'').toLowerCase();return va>0&&data.some(d=>d.mes===tMes&&Math.abs(d.valor-va)<1&&d.fuente===cardUp);}).length;
         const nuevas=parsed.length-dupes;
         const partes=[];
         if(nuevas>0)partes.push('<span style="color:var(--green);font-weight:700">'+nuevas+' nuevas ✓</span>');
@@ -1454,7 +1455,7 @@ async function handleFile(file){
         const va=parseFloat(t.valor_ars||0);const vu=parseFloat(t.valor_usd||0);
         const display=vu>0&&va===0?'U$S '+vu.toLocaleString('es-AR'):ars(va);
         const tMes=(t.mes||mes||'').toLowerCase();
-        const dupMatch=va>0?data.find(d=>d.mes===tMes&&Math.abs(d.valor-va)<1):null;
+        const dupMatch=va>0?data.find(d=>d.mes===tMes&&Math.abs(d.valor-va)<1&&d.fuente===cardUp):null;
         const dupeTag=dupMatch?'<span title="Ya existe: '+dupMatch.desc+' ('+dupMatch.mes+')" style="font-size:9px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber);border-radius:4px;padding:1px 5px;flex-shrink:0;cursor:help">dup. en '+dupMatch.mes.slice(0,3)+(dupMatch.fuente?' · '+dupMatch.fuente:'')+'</span>':'';
         const rowStyle=dupMatch?'background:var(--amber-bg);border-radius:6px;padding:6px;margin:2px -4px':'';
         return '<div class="parsed-row" style="'+rowStyle+'">'+
