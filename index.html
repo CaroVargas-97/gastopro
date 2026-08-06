@@ -1099,15 +1099,26 @@ function renderTx(){
   data.forEach((t,i)=>{if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&(!fuente||t.fuente===fuente)&&(!txt||(t.desc||'').toLowerCase().includes(txt)))filtered.push(i);});
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
-  const dupKeys=new Set();
-  const keyCount={};
-  data.forEach(t=>{if(t.fuente){const k=t.mes+'|'+t.valor+'|'+t.fuente;keyCount[k]=(keyCount[k]||0)+1;}});
-  Object.entries(keyCount).forEach(([k,c])=>{if(c>1)dupKeys.add(k);});
+  const STOP=new Set(['DE','EL','LA','LOS','LAS','EN','Y','A','AL','DEL','UN','UNA','CON','POR','PARA','SE','SU','QUE','ES','SON','SA','SRL','VIAJE','PAGO','COMPRA','CUOTA']);
+  function normDesc(s){return(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/[\s\-\/,.]+/).filter(w=>w.length>2&&!STOP.has(w));}
+  function descSim(a,b){const ka=new Set(normDesc(a));return normDesc(b).some(w=>ka.has(w));}
+  const dupGroups={};
+  data.forEach((t,i)=>{if(t.fuente){const k=t.mes+'|'+t.valor+'|'+t.fuente;(dupGroups[k]=dupGroups[k]||[]).push(i);}});
+  const definite=new Set(),possible=new Set();
+  Object.values(dupGroups).forEach(grp=>{
+    if(grp.length<2)return;
+    for(let a=0;a<grp.length;a++)for(let b=a+1;b<grp.length;b++){
+      if(descSim(data[grp[a]].desc,data[grp[b]].desc)){definite.add(grp[a]);definite.add(grp[b]);}
+      else{if(!definite.has(grp[a]))possible.add(grp[a]);if(!definite.has(grp[b]))possible.add(grp[b]);}
+    }
+  });
   const rows=filtered.map(di=>{
     const t=data[di];const usdVal=t.valor/T;
-    const isDup=t.fuente&&dupKeys.has(t.mes+'|'+t.valor+'|'+t.fuente);
-    const dupIcon=isDup?'<span title="Posible duplicado: mismo monto, mes y fuente" style="color:var(--amber);margin-left:4px;cursor:help">⚠️</span>':'';
-    return '<tr'+(isDup?' style="background:var(--amber-bg)"':'')+'>'+
+    const isDef=definite.has(di),isPoss=!isDef&&possible.has(di);
+    const bg=isDef?'background:var(--red-bg)':isPoss?'background:var(--amber-bg)':'';
+    const dupIcon=isDef?'<span title="Probable duplicado: monto+mes+fuente coinciden y las descripciones tienen palabras en común" style="margin-left:4px;cursor:help">🔴</span>':
+      isPoss?'<span title="Posible duplicado: mismo monto, mes y fuente — revisá si no son compras distintas" style="margin-left:4px;cursor:help">🟠</span>':'';
+    return '<tr'+(bg?' style="'+bg+'"':'')+'>'+
       '<td style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
       '<td class="td-desc">'+t.desc+dupIcon+'</td>'+
       '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
