@@ -1420,6 +1420,7 @@ async function handleFile(file){
     const T=tc();
     const totalConsumos=parsed.reduce((s,t)=>s+(parseFloat(t.valor_ars)||0)+(parseFloat(t.valor_usd)||0)*T,0);
     pendingParsed={arr:parsed,meta:{mes,card,anio,totalAbonadoARS,totalAbonadoUSD}};
+    const cardUp=card.toUpperCase();
     res.innerHTML='<div class="ai-box">'+
       '<div class="ai-head"><span class="ai-badge">✦ IA</span><span style="font-size:13px;font-weight:700;color:var(--text)">'+parsed.length+' transacciones encontradas</span></div>'+
       (totalAbonadoARS>0?'<div style="display:flex;gap:8px;margin-bottom:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap">'+
@@ -1437,7 +1438,6 @@ async function handleFile(file){
         '<span style="font-size:12px;color:var(--text2)">USD</span>'+
       '</div>')+
       (function(){
-        const cardUp=card.toUpperCase();
         const dupes=parsed.filter(t=>{const va=parseFloat(t.valor_ars||0);const tMes=(t.mes||mes||'').toLowerCase();return va>0&&data.some(d=>d.mes===tMes&&Math.abs(d.valor-va)<1&&d.fuente===cardUp);}).length;
         const nuevas=parsed.length-dupes;
         const partes=[];
