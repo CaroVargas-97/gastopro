@@ -1461,7 +1461,7 @@ async function handleFile(file){
         const dupeTag=dupMatch?'<span title="Ya existe: '+dupMatch.desc+' ('+dupMatch.mes+')" style="font-size:9px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber);border-radius:4px;padding:1px 5px;flex-shrink:0;cursor:help">dup. en '+dupMatch.mes.slice(0,3)+(dupMatch.fuente?' · '+dupMatch.fuente:'')+'</span>':'';
         const rowStyle=dupMatch?'background:var(--amber-bg);border-radius:6px;padding:6px;margin:2px -4px':'';
         return '<div class="parsed-row" style="'+rowStyle+'">'+
-          '<input type="checkbox" class="pr-chk" data-idx="'+i+'" checked style="flex-shrink:0;accent-color:var(--accent);width:15px;height:15px;cursor:pointer" onchange="updatePrCount()">'+
+          '<input type="checkbox" class="pr-chk" data-idx="'+i+'" '+(dupMatch?'':'checked')+' style="flex-shrink:0;accent-color:var(--accent);width:15px;height:15px;cursor:pointer" onchange="updatePrCount()">'+
           '<span class="pr-desc">'+(t.desc||'Sin descripción')+'</span>'+
           '<span class="badge '+(CATBADGE[t.cat||'OTROS']||'b-ot')+'" style="font-size:9px">'+(CATLAB[t.cat||'OTROS']||'Otros')+'</span>'+
           dupeTag+
