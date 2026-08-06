@@ -647,7 +647,7 @@ async function loadData(){
       sb.from('transacciones').select('*').order('created_at',{ascending:true}),
       sb.from('historial').select('*').order('saved_at',{ascending:false})
     ]);
-    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:r.fuente||''})).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:r.fuente||'',creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
     historial=(histRes.data||[]).map(r=>({id:r.id,card:r.card,mes:r.mes,anio:r.anio,count:r.cantidad,total:parseFloat(r.total)||0,totalAbonado:parseFloat(r.total_abonado)||0,totalAbonadoUSD:parseFloat(r.total_abonado_usd)||0,savedAt:new Date(r.saved_at).toLocaleDateString('es-AR')}));
     document.getElementById('hist-badge').textContent=historial.length;
     setSyncStatus('ok');
@@ -1121,11 +1121,12 @@ function renderTx(){
     const t=data[di];const usdVal=t.valor/T;
     const isDef=definite.has(di),isPoss=!isDef&&possible.has(di);
     const bg=isDef?'background:var(--red-bg)':isPoss?'background:var(--amber-bg)':'';
+    const fechaTag=(isDef||isPoss)&&t.creadoEl?'<span style="font-size:10px;color:var(--text3);margin-left:6px;font-weight:400">cargado '+t.creadoEl+'</span>':'';
     const dupIcon=isDef?'<span title="Probable duplicado: monto+mes+fuente coinciden y las descripciones tienen palabras en común" style="margin-left:4px;cursor:help">🔴</span>':
       isPoss?'<span title="Posible duplicado: mismo monto, mes y fuente — revisá si no son compras distintas" style="margin-left:4px;cursor:help">🟠</span>':'';
     return '<tr'+(bg?' style="'+bg+'"':'')+'>'+
       '<td style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
-      '<td class="td-desc">'+t.desc+dupIcon+'</td>'+
+      '<td class="td-desc">'+t.desc+dupIcon+fechaTag+'</td>'+
       '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
       '<td style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
       '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':'Crédito')+'</span></td>'+
