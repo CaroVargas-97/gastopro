@@ -1212,7 +1212,7 @@ function renderCargaSummary(){
   const MABR=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const grupos={};
   data.forEach(t=>{
-    const f=t.fuente||'(sin fuente)';
+    const f=t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'(sin fuente)');
     if(!grupos[f])grupos[f]={count:0,meses:new Set()};
     grupos[f].count++;
     grupos[f].meses.add(t.mes);
