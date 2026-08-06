@@ -1480,11 +1480,21 @@ function toggleAllParsed(checked){
   updatePrCount();
 }
 function updatePrCount(){
-  const n=document.querySelectorAll('.pr-chk:checked').length;
+  if(!pendingParsed)return;
+  const {arr}=pendingParsed;
+  const T=tc();
+  const checked=[...document.querySelectorAll('.pr-chk:checked')].map(c=>parseInt(c.dataset.idx));
+  const n=checked.length;
   const countEl=document.getElementById('pr-count');
   const importEl=document.getElementById('pr-import-count');
   if(countEl)countEl.textContent=n+' seleccionados';
   if(importEl)importEl.textContent=n;
+  const totalARS=checked.reduce((s,i)=>{const t=arr[i];const va=parseFloat(t.valor_ars||0);const vu=parseFloat(t.valor_usd||0);return s+(va>0?va:vu*T);},0);
+  const totalUSD=checked.reduce((s,i)=>{const t=arr[i];const va=parseFloat(t.valor_ars||0);const vu=parseFloat(t.valor_usd||0);return s+(vu>0?vu:va/T);},0);
+  const arsEl=document.getElementById('edit-total-ars');
+  const usdEl=document.getElementById('edit-total-usd');
+  if(arsEl)arsEl.value=Math.round(totalARS);
+  if(usdEl)usdEl.value=totalUSD.toFixed(2);
 }
 async function importParsed(){
   if(!pendingParsed)return;
