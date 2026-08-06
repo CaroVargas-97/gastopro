@@ -1204,6 +1204,8 @@ function renderCargaSummary(){
   const el=document.getElementById('carga-summary');
   if(!el)return;
   if(!data.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">No hay transacciones cargadas todavía.</div>';return;}
+  const MORD=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const MABR=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const grupos={};
   data.forEach(t=>{
     const f=t.fuente||'(sin fuente)';
@@ -1211,18 +1213,21 @@ function renderCargaSummary(){
     grupos[f].count++;
     grupos[f].meses.add(t.mes);
   });
-  const MORD=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const filas=Object.entries(grupos).sort((a,b)=>b[1].count-a[1].count).map(([f,g])=>{
-    const mesesOrdenados=[...g.meses].sort((a,b)=>MORD.indexOf(a)-MORD.indexOf(b));
-    const rango=mesesOrdenados.length===1?mesesOrdenados[0]:mesesOrdenados[0]+' → '+mesesOrdenados[mesesOrdenados.length-1];
-    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">'+
-      '<div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+f+'</div>'+
-      '<div style="font-size:12px;color:var(--text2)">'+rango+'</div>'+
-      '<div style="min-width:80px;text-align:right;font-size:12px;font-weight:700;color:var(--accent)">'+g.count+' gastos</div>'+
-      '<button class="btn" style="font-size:11px;padding:3px 8px" onclick="document.getElementById(\'fFuente\').value=\''+f+'\';go(\'transacciones\')"><i class="ti ti-eye"></i> Ver</button>'+
+    const chips=MORD.map((m,i)=>{
+      const tiene=g.meses.has(m);
+      return '<span style="display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;'+(tiene?'background:var(--accent-light);color:var(--accent)':'background:var(--bg3);color:var(--text3);opacity:.5')+'" title="'+(tiene?g.count+' gastos en ':'')+m+'">'+MABR[i]+'</span>';
+    }).join('');
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+        '<span style="font-size:13px;font-weight:600;color:var(--text);flex:1">'+f+'</span>'+
+        '<span style="font-size:11px;font-weight:700;color:var(--accent)">'+g.count+' gastos</span>'+
+        '<button class="btn" style="font-size:11px;padding:3px 8px" onclick="document.getElementById(\'fFuente\').value=\''+f+'\';go(\'transacciones\')"><i class="ti ti-eye"></i> Ver</button>'+
+      '</div>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div>'+
     '</div>';
   }).join('');
-  el.innerHTML='<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+data.length+' transacciones en total — '+Object.keys(grupos).length+' fuentes</div>'+filas;
+  el.innerHTML='<div style="font-size:12px;color:var(--text3);margin-bottom:12px">'+data.length+' transacciones en total — '+Object.keys(grupos).length+' fuentes</div>'+filas;
 }
 
 async function borrarFiltrados(){
