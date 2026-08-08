@@ -42,7 +42,7 @@ body.dark .login-card{background:var(--bg2)}
 .login-error{background:var(--red-bg);border:1px solid #fca5a5;color:var(--red);padding:9px 12px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:14px;display:none}
 .login-footer{text-align:center;font-size:11px;color:var(--text3);margin-top:20px}
 /* APP */
-.app{display:flex;min-height:100vh;display:none}
+.app{min-height:100vh;display:none}
 .sidebar{width:230px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:background .2s,border-color .2s}
 .main{flex:1;overflow:auto;background:var(--bg)}
 .logo-area{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
@@ -306,6 +306,7 @@ tr:hover .action-btns{opacity:1}
           <span style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Blue</span>
           <span id="tc-topbar" style="font-size:12px;font-weight:700;color:var(--text)">$1.370</span>
           <button onclick="fetchDolarBlue()" title="Actualizar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0;font-size:12px;line-height:1;display:flex;align-items:center" id="tc-refresh-btn"><i class="ti ti-refresh"></i></button>
+          <span id="tc-status" style="font-size:10px;color:var(--red);display:none"></span>
         </div>
         <button class="btn" onclick="toggleTheme()" id="theme-btn" title="Cambiar tema"><i class="ti ti-moon" id="theme-icon"></i></button>
         <button class="btn" onclick="exportCSV()"><i class="ti ti-download" style="font-size:13px"></i>Exportar CSV</button>
@@ -359,7 +360,7 @@ tr:hover .action-btns{opacity:1}
           <select class="fsel" id="fCat" onchange="renderTx()">
             <option value="">Todas las categorías</option>
             <option>DEPARTAMENTO</option><option>TARJETAS</option><option>OTROS</option>
-            <option>AUTO</option><option>MOTO</option><option value="CAJA CHICA ">CAJA CHICA</option>
+            <option>AUTO</option><option>MOTO</option><option value="CAJA CHICA">CAJA CHICA</option>
             <option>VIAJES</option><option>TEAM</option><option>COMIDAS</option>
             <option>SUSCRIPCIONES</option><option>MUN</option><option>INVERSIONES</option>
             <option>AMEX LUIS</option><option>FRANCES LUIS</option><option>SANTANDER LUIS</option><option>SALUD</option>
@@ -433,7 +434,7 @@ tr:hover .action-btns{opacity:1}
                     <span class="fmt-tag">PDF</span><span class="fmt-tag">JPG</span><span class="fmt-tag">PNG</span><span class="fmt-tag">CSV</span>
                   </div>
                 </div>
-                <input type="file" class="dz-input" id="fi" accept=".pdf,.png,.jpg,.jpeg,.csv,.webp,.zip" onchange="handleFile(this.files[0])">
+                <input type="file" class="dz-input" id="fi" accept=".pdf,.png,.jpg,.jpeg,.csv,.webp,.zip">
               </div>
               <div id="cancel-area" style="display:none">
                 <button class="btn btn-danger" style="width:100%;padding:9px;justify-content:center" onclick="cancelUpload()">
@@ -464,7 +465,7 @@ tr:hover .action-btns{opacity:1}
                 <select class="finput" id="mCat">
                   <option value="DEPARTAMENTO">Departamento</option><option value="TARJETAS">Tarjetas</option>
                   <option value="OTROS">Otros</option><option value="AUTO">Auto</option>
-                  <option value="MOTO">Moto</option><option value="CAJA CHICA ">Caja chica</option>
+                  <option value="MOTO">Moto</option><option value="CAJA CHICA">Caja chica</option>
                   <option value="VIAJES">Viajes</option><option value="TEAM">Gastos del team</option>
                   <option value="COMIDAS">Comidas / delivery</option><option value="SUSCRIPCIONES">Suscripciones</option>
                   <option value="MUN">MUN</option><option value="INVERSIONES">Inversiones</option>
@@ -473,6 +474,10 @@ tr:hover .action-btns{opacity:1}
                 </select>
               </div>
               <div class="ff"><label class="flabel">Valor ARS</label><input class="finput" id="mVal" type="number" placeholder="0"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="ff"><label class="flabel">Fuente / Tarjeta</label><input class="finput" id="mFuente" type="text" placeholder="AMEX, BBVA..."></div>
+              <div class="ff"><label class="flabel">Notas</label><input class="finput" id="mNotas" type="text" placeholder="Opcional..."></div>
             </div>
             <button class="btn btn-accent" style="width:100%;padding:10px;justify-content:center" onclick="addManual()">
               <i class="ti ti-plus"></i> Agregar gasto
@@ -548,10 +553,10 @@ const SUPA_KEY='sb_publishable_0XEjYVJ8j5Dlqa6SERapvA_VgOMLzWF';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const CATCOL={'DEPARTAMENTO':'#3b82f6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','MOTO':'#ef4444','CAJA CHICA ':'#16a34a','VIAJES':'#ec4899','TEAM':'#0891b2','COMIDAS':'#f97316','SUSCRIPCIONES':'#8b5cf6','MUN':'#0d9488','INVERSIONES':'#dc2626','AMEX LUIS':'#10b981','FRANCES LUIS':'#0ea5e9','SANTANDER LUIS':'#f43f5e','SALUD':'#a855f7'};
-const CATBADGE={'DEPARTAMENTO':'b-dep','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','MOTO':'b-mot','CAJA CHICA ':'b-caj','VIAJES':'b-via','TEAM':'b-team','COMIDAS':'b-com','SUSCRIPCIONES':'b-sus','MUN':'b-mun','INVERSIONES':'b-inv','AMEX LUIS':'b-alu','FRANCES LUIS':'b-flu','SANTANDER LUIS':'b-slu','SALUD':'b-sal'};
-const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA ':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones','AMEX LUIS':'Amex Luis','FRANCES LUIS':'Francés Luis','SANTANDER LUIS':'Santander Luis','SALUD':'Salud'};
-const CATS=['DEPARTAMENTO','TARJETAS','OTROS','AUTO','MOTO','CAJA CHICA ','VIAJES','TEAM','COMIDAS','SUSCRIPCIONES','MUN','INVERSIONES','AMEX LUIS','FRANCES LUIS','SANTANDER LUIS','SALUD'];
+const CATCOL={'DEPARTAMENTO':'#3b82f6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','MOTO':'#ef4444','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','TEAM':'#0891b2','COMIDAS':'#f97316','SUSCRIPCIONES':'#8b5cf6','MUN':'#0d9488','INVERSIONES':'#dc2626','AMEX LUIS':'#10b981','FRANCES LUIS':'#0ea5e9','SANTANDER LUIS':'#f43f5e','SALUD':'#a855f7'};
+const CATBADGE={'DEPARTAMENTO':'b-dep','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','MOTO':'b-mot','CAJA CHICA':'b-caj','VIAJES':'b-via','TEAM':'b-team','COMIDAS':'b-com','SUSCRIPCIONES':'b-sus','MUN':'b-mun','INVERSIONES':'b-inv','AMEX LUIS':'b-alu','FRANCES LUIS':'b-flu','SANTANDER LUIS':'b-slu','SALUD':'b-sal'};
+const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones','AMEX LUIS':'Amex Luis','FRANCES LUIS':'Francés Luis','SANTANDER LUIS':'Santander Luis','SALUD':'Salud'};
+const CATS=['DEPARTAMENTO','TARJETAS','OTROS','AUTO','MOTO','CAJA CHICA','VIAJES','TEAM','COMIDAS','SUSCRIPCIONES','MUN','INVERSIONES','AMEX LUIS','FRANCES LUIS','SANTANDER LUIS','SALUD'];
 const PAGES={overview:'Dashboard',analisis:'Análisis',transacciones:'Transacciones',inversiones:'Inversiones',cargar:'Cargar datos',historial:'Historial',config:'Configuración'};
 const NAV_IDS=['overview','analisis','transacciones','inversiones','cargar','historial','config'];
 
@@ -560,7 +565,7 @@ const PROMPT=`Sos un extractor de gastos financieros en Argentina. Analizá el r
 1. "total_ars": el monto TOTAL A PAGAR en pesos argentinos. En AMEX es el campo "Saldo a pagar $" que aparece en recuadro negro/destacado en la primera página — es el número más grande y remarcado, ejemplo: 4.055.468,26. En BBVA es "Saldo Actual $". NUNCA uses "Saldo Anterior $", ni el resultado de restar créditos a débitos. El total a pagar es siempre el número final que el cliente debe abonar, que incluye saldo anterior más nuevos débitos menos créditos.
 2. "total_usd": el monto total a pagar en dólares. En AMEX es "Saldo a pagar U$S". Si es 0,00 poner 0.
 3. "transacciones": array con TODOS los gastos individuales, cada uno con:
-{"mes":"enero|febrero|...|diciembre","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"DEPARTAMENTO|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA |VIAJES|TEAM|COMIDAS|SUSCRIPCIONES|MUN|INVERSIONES"}
+{"mes":"enero|febrero|...|diciembre","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"DEPARTAMENTO|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA|VIAJES|TEAM|COMIDAS|SUSCRIPCIONES|MUN|INVERSIONES|AMEX LUIS|FRANCES LUIS|SANTANDER LUIS|SALUD"}
 
 REGLA DE MONEDAS:
 - Gasto en PESOS ARGENTINOS (ARS o $): valor_ars con el monto, valor_usd en 0
@@ -644,7 +649,7 @@ function setSyncStatus(state){
 async function loadData(){
   try{
     const [txRes,histRes]=await Promise.all([
-      sb.from('transacciones').select('*').order('created_at',{ascending:true}),
+      sb.from('transacciones').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:true}),
       sb.from('historial').select('*').order('saved_at',{ascending:false})
     ]);
     data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
@@ -705,7 +710,7 @@ async function fetchDolarBlue(){
     const topbar=document.getElementById('tc-topbar');
     if(topbar)topbar.textContent='$'+venta.toLocaleString('es-AR');
   }catch(e){
-    if(status)status.textContent='Sin conexión — editá manualmente';
+    if(status){status.textContent='Sin conexión — editá manualmente';status.style.display='';}
   }finally{
     if(btn)btn.style.animation='';
   }
@@ -977,7 +982,7 @@ async function generarInsights(){
   const budgetLine=b>0?'\nPresupuesto mensual configurado: $'+Math.round(b/1000)+'k ARS':'';
   const prompt='Soy usuario argentino de una app de finanzas personales. Mis gastos:\n\n'+summary+budgetLine+'\nTC blue actual: $'+Math.round(T)+'/USD.\n\nDame exactamente 3 insights concretos y accionables sobre mis gastos. Cada uno en una línea nueva empezando con un emoji relevante. Sin títulos ni listas. Máximo 120 palabras.';
   try{
-    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:350,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:350,messages:[{role:'user',content:prompt}]})});
     const d=await res.json();
     const text=(d.content&&d.content[0]&&d.content[0].text)||'Sin respuesta';
     box.innerHTML='<div class="insight-wrap">'+
@@ -1080,7 +1085,7 @@ function renderTx(){
     if(mes){
       const mesTxs=data.filter(t=>t.mes===mes);
       const totARS=mesTxs.reduce((s,t)=>s+t.valor,0);
-      const totUSD=mesTxs.reduce((s,t)=>s+t.valor/T,0);
+      const totUSD=mesTxs.reduce((s,t)=>s+(t.usd>0?t.usd:t.valor/T),0);
       const efARS=mesTxs.filter(t=>t.metodo==='EFECTIVO').reduce((s,t)=>s+t.valor,0);
       const crARS=mesTxs.filter(t=>t.metodo==='CREDITO').reduce((s,t)=>s+t.valor,0);
       const efPct=totARS>0?Math.round(efARS/totARS*100):0;
@@ -1196,12 +1201,15 @@ async function addManual(){
   const metodo=document.getElementById('mMet').value;
   const cat=document.getElementById('mCat').value;
   const valor=parseFloat(document.getElementById('mVal').value);
+  const fuente=(document.getElementById('mFuente').value||'').trim().toUpperCase();
+  const notas=(document.getElementById('mNotas').value||'').trim();
   if(!mes||!desc||!valor){showToast('Completá todos los campos');return;}
-  const t={mes,desc:desc.toUpperCase(),metodo,valor,usd:valor/tc(),cat};
+  const t={mes,desc:desc.toUpperCase(),metodo,valor,usd:valor/tc(),cat,fuente,notas:notas||null};
   data.push(t);
   await saveTransaction(t);
   document.getElementById('mDesc').value='';document.getElementById('mVal').value='';
-  showToast('Gasto agregado');go('overview');
+  document.getElementById('mFuente').value='';document.getElementById('mNotas').value='';
+  populateMesFilter();showToast('Gasto agregado');go('overview');
 }
 
 function renderCargaSummary(){
@@ -1240,7 +1248,7 @@ async function borrarFiltrados(){
   const met=document.getElementById('fMet').value;
   const fuente=document.getElementById('fFuente').value;
   const txt=(document.getElementById('fText').value||'').toLowerCase();
-  const toDelete=data.filter(t=>(!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&(!fuente||t.fuente===fuente)&&(!txt||(t.desc||'').toLowerCase().includes(txt)));
+  const toDelete=data.filter(t=>{const fOk=!fuente||(fuente==='__sin_fuente__'?!t.fuente:t.fuente===fuente);return(!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fOk&&(!txt||(t.desc||'').toLowerCase().includes(txt));});
   if(!toDelete.length){showToast('No hay transacciones con ese filtro');return;}
   if(!confirm('¿Borrar '+toDelete.length+' transacciones filtradas? Esta acción no se puede deshacer.'))return;
   setSyncStatus('saving');
@@ -1256,13 +1264,16 @@ async function borrarTodo(){
   const n=data.length;
   if(!n){showToast('No hay transacciones para borrar');return;}
   if(!confirm('¿Borrar TODAS las '+n+' transacciones? Esta acción no se puede deshacer.'))return;
+  if(!confirm('Segunda confirmación: se borrarán TODOS los datos permanentemente. ¿Seguro?'))return;
   setSyncStatus('saving');
   try{
     await sb.from('transacciones').delete().eq('user_id',currentUser.id);
     await sb.from('historial').delete().eq('user_id',currentUser.id);
     data=[];historial=[];
     document.getElementById('hist-badge').textContent='0';
-    setSyncStatus('ok');updateSubtitle();renderTx();showToast('Todo eliminado');
+    setSyncStatus('ok');updateSubtitle();renderTx();
+    try{renderHistorialPage();}catch(e){}
+    showToast('Todo eliminado');
   }catch(e){setSyncStatus('error');showToast('Error: '+e.message);}
 }
 
@@ -1535,6 +1546,7 @@ async function importParsed(){
   document.getElementById('dz-sub').textContent='PDF, imagen o CSV — la IA extrae y categoriza todo';
   document.getElementById('dz-fmts').style.display='';
   fi.value='';
+  document.getElementById('cancel-area').style.display='none';
   updateSubtitle();
   showToast('✓ '+imported+' transacciones importadas');
   go('overview');
@@ -1707,8 +1719,8 @@ function startEditCuenta(id,cuenta){
   if(!btn)return;
   const row=btn.closest('tr');
   if(!row)return;
-  const inpStyle='style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text1);font-size:12px"';
-  const selStyle='style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text1);font-size:12px"';
+  const inpStyle='style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text);font-size:12px"';
+  const selStyle='style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text);font-size:12px"';
   if(cuenta==='INVERSIONES'){
     row.innerHTML=
       '<td><input id="ec-fecha" type="date" value="'+(m.fecha||'')+'" '+inpStyle+'></td>'+
