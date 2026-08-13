@@ -650,9 +650,9 @@ async function loadData(){
   try{
     const [txRes,histRes]=await Promise.all([
       sb.from('transacciones').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:true}),
-      sb.from('historial').select('*').order('saved_at',{ascending:false})
+      sb.from('historial').select('*').eq('user_id',currentUser.id).order('saved_at',{ascending:false})
     ]);
-    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
     historial=(histRes.data||[]).map(r=>({id:r.id,card:r.card,mes:r.mes,anio:r.anio,count:r.cantidad,total:parseFloat(r.total)||0,totalAbonado:parseFloat(r.total_abonado)||0,totalAbonadoUSD:parseFloat(r.total_abonado_usd)||0,savedAt:new Date(r.saved_at).toLocaleDateString('es-AR')}));
     document.getElementById('hist-badge').textContent=historial.length;
     setSyncStatus('ok');
@@ -670,7 +670,7 @@ async function loadCuentas(){
 async function saveTransaction(t){
   setSyncStatus('saving');
   try{
-    const row={user_id:currentUser.id,mes:t.mes,descripcion:t.desc,metodo:t.metodo,valor:t.valor,usd:t.usd,cat:t.cat,fuente:t.fuente||''};
+    const row={user_id:currentUser.id,mes:t.mes,descripcion:t.desc,metodo:t.metodo,valor:t.valor,usd:t.usd,cat:t.cat,fuente:t.fuente||'',notas:t.notas||null};
     if(t._id){await sb.from('transacciones').update(row).eq('id',t._id);}
     else{const {data:ins}=await sb.from('transacciones').insert(row).select().single();t._id=ins.id;}
     setSyncStatus('ok');
@@ -735,17 +735,18 @@ function go(id){
   document.getElementById('sec-'+id).classList.add('active');
   document.getElementById('pg-title').textContent=PAGES[id];
   if(id==='overview')renderOverview();
-  if(id==='analisis')renderAnalisis();
-  if(id==='transacciones'){populateMesFilter();renderTx();}
-  if(id==='inversiones')renderInv();
-  if(id==='cargar')renderCargaSummary();
-  if(id==='historial')renderHistorialPage();
+  if(id==='analisis'){renderAnalisis();const m=mesesActivos();const pgSub=document.getElementById('pg-sub');if(pgSub){const f=m[0],l=m[m.length-1];pgSub.textContent=m.length?(f===l?f.charAt(0).toUpperCase()+f.slice(1):f.charAt(0).toUpperCase()+f.slice(1)+' – '+l.charAt(0).toUpperCase()+l.slice(1)):' ';}}
+  if(id==='transacciones'){populateMesFilter();renderTx();const pgSub=document.getElementById('pg-sub');if(pgSub)pgSub.textContent=data.length+' gastos · '+mesesActivos().length+' meses';}
+  if(id==='inversiones'){renderInv();const pgSub=document.getElementById('pg-sub');if(pgSub)pgSub.textContent=invData.length+' movimientos';}
+  if(id==='cargar'){renderCargaSummary();const pgSub=document.getElementById('pg-sub');if(pgSub)pgSub.textContent='Importá resúmenes de tarjeta';}
+  if(id==='historial'){renderHistorialPage();const pgSub=document.getElementById('pg-sub');if(pgSub)pgSub.textContent=historial.length+' resúmenes guardados';}
   if(id==='config'){
     const el=document.getElementById('cfg-email');
     if(el)el.textContent=currentUser.email;
     const b=budget();
     const bi=document.getElementById('cfg-budget');
     if(bi&&b)bi.value=b;
+    const pgSub=document.getElementById('pg-sub');if(pgSub)pgSub.textContent=currentUser.email||'';
   }
 }
 
@@ -1109,7 +1110,8 @@ function renderTx(){
   const filtered=[];
   data.forEach((t,i)=>{
     const fuenteOk=!fuente||(fuente==='__sin_fuente__'?!t.fuente:t.fuente===fuente);
-    if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fuenteOk&&(!txt||(t.desc||'').toLowerCase().includes(txt)))filtered.push(i);
+    const txtOk=!txt||(t.desc||'').toLowerCase().includes(txt)||(t.notas||'').toLowerCase().includes(txt)||(t.fuente||'').toLowerCase().includes(txt);
+    if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fuenteOk&&txtOk)filtered.push(i);
   });
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
@@ -1135,7 +1137,8 @@ function renderTx(){
       isPoss?'<span title="Posible duplicado: mismo monto, mes y fuente — revisá si no son compras distintas" style="margin-left:4px;cursor:help">🟠</span>':'';
     return '<tr'+(bg?' style="'+bg+'"':'')+'>'+
       '<td style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
-      '<td class="td-desc">'+t.desc+dupIcon+fechaTag+'</td>'+
+      '<td class="td-desc">'+t.desc+dupIcon+fechaTag+(t.notas?'<div style="font-size:10px;color:var(--text3);font-style:italic;margin-top:2px">'+t.notas+'</div>':'')+
+      '</td>'+
       '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
       '<td style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
       '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':'Crédito')+'</span></td>'+
@@ -1159,7 +1162,7 @@ function startEdit(di){
   const catopts=CATS.map(c=>'<option value="'+c+'" '+(t.cat===c?'selected':'')+'>'+(CATLAB[c]||c)+'</option>').join('');
   const tr=document.querySelector('[data-di="'+di+'"]').closest('tr');
   tr.innerHTML='<td><select class="edit-sel" id="e-mes" style="width:90px">'+mesopts+'</select></td>'+
-    '<td><input class="edit-inp" id="e-desc" value="'+t.desc+'" style="min-width:140px"></td>'+
+    '<td><input class="edit-inp" id="e-desc" value="'+t.desc+'" style="min-width:140px"><input class="edit-inp" id="e-notas" value="'+(t.notas||'')+'" placeholder="Notas..." style="min-width:140px;margin-top:3px;font-size:11px"></td>'+
     '<td><select class="edit-sel" id="e-cat">'+catopts+'</select></td>'+
     '<td><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
     '<td><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option></select></td>'+
@@ -1181,8 +1184,9 @@ async function saveRow(di){
   const fuente=document.getElementById('e-fuente').value.trim();
   const met=document.getElementById('e-met').value;
   const val=parseFloat(document.getElementById('e-val').value);
+  const notas=(document.getElementById('e-notas').value||'').trim();
   if(!desc||!val){showToast('Completá todos los campos');return;}
-  data[di]={...data[di],mes,desc,cat,fuente,metodo:met,valor:val,usd:val/tc()};
+  data[di]={...data[di],mes,desc,cat,fuente,metodo:met,valor:val,usd:val/tc(),notas};
   await saveTransaction(data[di]);
   editingIdx=null;renderTx();showToast('Cambios guardados');
 }
@@ -1190,8 +1194,12 @@ async function saveRow(di){
 async function delRow(di){
   if(!confirm('¿Eliminar este gasto?'))return;
   const id=data[di]._id;
-  data.splice(di,1);editingIdx=null;
-  if(id)await deleteTransaction(id);
+  editingIdx=null;
+  if(id){
+    try{await deleteTransaction(id);}
+    catch(e){showToast('Error al eliminar');return;}
+  }
+  data.splice(di,1);
   renderTx();showToast('Gasto eliminado');
 }
 
@@ -1204,9 +1212,12 @@ async function addManual(){
   const fuente=(document.getElementById('mFuente').value||'').trim().toUpperCase();
   const notas=(document.getElementById('mNotas').value||'').trim();
   if(!mes||!desc||!valor){showToast('Completá todos los campos');return;}
+  const btn=document.querySelector('#sec-cargar .btn-accent');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="border-top-color:#fff;width:14px;height:14px;margin:0 auto"></div>';}
   const t={mes,desc:desc.toUpperCase(),metodo,valor,usd:valor/tc(),cat,fuente,notas:notas||null};
   data.push(t);
   await saveTransaction(t);
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-plus"></i> Agregar gasto';}
   document.getElementById('mDesc').value='';document.getElementById('mVal').value='';
   document.getElementById('mFuente').value='';document.getElementById('mNotas').value='';
   populateMesFilter();showToast('Gasto agregado');go('overview');
@@ -1829,9 +1840,11 @@ async function removeHistorial(i){
 /* CSV */
 function exportCSV(){
   const T=tc();
-  const rows=[['Mes','Descripción','Método','Categoría','ARS','USD'],...data.map(t=>[t.mes,t.desc,t.metodo,t.cat,t.valor,(t.usd>0?t.usd:t.valor/T).toFixed(2)])];
+  function csvCell(v){const s=String(v??'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
+  const rows=[['Mes','Descripción','Categoría','Fuente','Método','Notas','ARS','USD'],
+    ...data.map(t=>[t.mes,t.desc,t.cat,t.fuente||'',t.metodo,t.notas||'',t.valor,(t.usd>0?t.usd:t.valor/T).toFixed(2)])];
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv;charset=utf-8;'}));
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(r=>r.map(csvCell).join(',')).join('\n')],{type:'text/csv;charset=utf-8;'}));
   a.download='gastos.csv';a.click();showToast('CSV exportado');
 }
 
