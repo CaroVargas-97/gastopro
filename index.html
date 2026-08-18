@@ -565,7 +565,9 @@ const PROMPT=`Sos un extractor de gastos financieros en Argentina. Analizá el r
 1. "total_ars": el monto TOTAL A PAGAR en pesos argentinos. En AMEX es el campo "Saldo a pagar $" que aparece en recuadro negro/destacado en la primera página — es el número más grande y remarcado, ejemplo: 4.055.468,26. En BBVA es "Saldo Actual $". NUNCA uses "Saldo Anterior $", ni el resultado de restar créditos a débitos. El total a pagar es siempre el número final que el cliente debe abonar, que incluye saldo anterior más nuevos débitos menos créditos.
 2. "total_usd": el monto total a pagar en dólares. En AMEX es "Saldo a pagar U$S". Si es 0,00 poner 0.
 3. "transacciones": array con TODOS los gastos individuales, cada uno con:
-{"mes":"enero|febrero|...|diciembre","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"DEPARTAMENTO|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA|VIAJES|TEAM|COMIDAS|SUSCRIPCIONES|MUN|INVERSIONES|AMEX LUIS|FRANCES LUIS|SANTANDER LUIS|SALUD"}
+{"mes":"enero|febrero|...|diciembre","fecha":"DD/MM","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"DEPARTAMENTO|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA|VIAJES|TEAM|COMIDAS|SUSCRIPCIONES|MUN|INVERSIONES|AMEX LUIS|FRANCES LUIS|SANTANDER LUIS|SALUD"}
+
+El campo "fecha" es la fecha de la transacción tal como figura en el resumen (ej: "05/08"). Si no aparece fecha, dejarlo como "".
 
 REGLA DE MONEDAS:
 - Gasto en PESOS ARGENTINOS (ARS o $): valor_ars con el monto, valor_usd en 0
@@ -652,7 +654,7 @@ async function loadData(){
       sb.from('transacciones').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:true}),
       sb.from('historial').select('*').eq('user_id',currentUser.id).order('saved_at',{ascending:false})
     ]);
-    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',fecha:r.fecha||'',creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
     historial=(histRes.data||[]).map(r=>({id:r.id,card:r.card,mes:r.mes,anio:r.anio,count:r.cantidad,total:parseFloat(r.total)||0,totalAbonado:parseFloat(r.total_abonado)||0,totalAbonadoUSD:parseFloat(r.total_abonado_usd)||0,savedAt:new Date(r.saved_at).toLocaleDateString('es-AR')}));
     document.getElementById('hist-badge').textContent=historial.length;
     setSyncStatus('ok');
@@ -670,7 +672,7 @@ async function loadCuentas(){
 async function saveTransaction(t){
   setSyncStatus('saving');
   try{
-    const row={user_id:currentUser.id,mes:t.mes,descripcion:t.desc,metodo:t.metodo,valor:t.valor,usd:t.usd,cat:t.cat,fuente:t.fuente||'',notas:t.notas||null};
+    const row={user_id:currentUser.id,mes:t.mes,descripcion:t.desc,metodo:t.metodo,valor:t.valor,usd:t.usd,cat:t.cat,fuente:t.fuente||'',notas:t.notas||null,fecha:t.fecha||null};
     if(t._id){await sb.from('transacciones').update(row).eq('id',t._id);}
     else{const {data:ins}=await sb.from('transacciones').insert(row).select().single();t._id=ins.id;}
     setSyncStatus('ok');
@@ -1133,7 +1135,7 @@ function renderTx(){
     const isDef=definite.has(di),isPoss=!isDef&&possible.has(di);
     const bg=isDef?'background:var(--red-bg)':isPoss?'background:var(--amber-bg)':'';
     const fechaTag=(isDef||isPoss)&&t.creadoEl?'<span style="font-size:10px;color:var(--text3);margin-left:6px;font-weight:400">cargado '+t.creadoEl+'</span>':'';
-    const fechaCol=t.creadoEl?'<td style="font-size:10px;color:var(--text3);white-space:nowrap">'+t.creadoEl+'</td>':'<td></td>';
+    const fechaCol='<td style="font-size:10px;color:var(--text3);white-space:nowrap">'+(t.fecha||'')+'</td>';
     const dupIcon=isDef?'<span title="Probable duplicado: monto+mes+fuente coinciden y las descripciones tienen palabras en común" style="margin-left:4px;cursor:help">🔴</span>':
       isPoss?'<span title="Posible duplicado: mismo monto, mes y fuente — revisá si no son compras distintas" style="margin-left:4px;cursor:help">🟠</span>':'';
     return '<tr'+(bg?' style="'+bg+'"':'')+'>'+
@@ -1382,7 +1384,7 @@ async function processZip(file){
           const mes=(t.mes||'enero').toLowerCase();
           const dup=data.some(d=>d.desc===desc&&d.valor===finalARS&&d.mes===mes&&d.fuente===card);
           if(dup)continue;
-          const row={mes,desc,metodo:(t.metodo||'EFECTIVO').toUpperCase(),valor:finalARS,usd:finalUSD,cat:t.cat||'OTROS',fuente:card};
+          const row={mes,desc,metodo:(t.metodo||'EFECTIVO').toUpperCase(),valor:finalARS,usd:finalUSD,cat:t.cat||'OTROS',fuente:card,fecha:t.fecha||''};
           data.push(row);await saveTransaction(row);imported++;cnt++;
         }
         log.push('✓ '+fname+' — '+cnt+' gastos');
@@ -1544,7 +1546,7 @@ async function importParsed(){
     if(!valARS&&!valUSD)continue;
     const finalARS=valARS>0?valARS:Math.round(valUSD*T);
     const finalUSD=valUSD>0?valUSD:parseFloat((valARS/T).toFixed(2));
-    const row={mes:(t.mes||meta.mes||'enero').toLowerCase(),desc:(t.desc||'SIN DESCRIPCION').toUpperCase(),metodo:(t.metodo||'EFECTIVO').toUpperCase(),valor:finalARS,usd:finalUSD,cat:t.cat||'OTROS',fuente:meta.card||''};
+    const row={mes:(t.mes||meta.mes||'enero').toLowerCase(),desc:(t.desc||'SIN DESCRIPCION').toUpperCase(),metodo:(t.metodo||'EFECTIVO').toUpperCase(),valor:finalARS,usd:finalUSD,cat:t.cat||'OTROS',fuente:meta.card||'',fecha:t.fecha||''};
     data.push(row);
     await saveTransaction(row);
     imported++;
