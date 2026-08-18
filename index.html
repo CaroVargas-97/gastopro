@@ -1133,6 +1133,7 @@ function renderTx(){
     const isDef=definite.has(di),isPoss=!isDef&&possible.has(di);
     const bg=isDef?'background:var(--red-bg)':isPoss?'background:var(--amber-bg)':'';
     const fechaTag=(isDef||isPoss)&&t.creadoEl?'<span style="font-size:10px;color:var(--text3);margin-left:6px;font-weight:400">cargado '+t.creadoEl+'</span>':'';
+    const fechaCol=t.creadoEl?'<td style="font-size:10px;color:var(--text3);white-space:nowrap">'+t.creadoEl+'</td>':'<td></td>';
     const dupIcon=isDef?'<span title="Probable duplicado: monto+mes+fuente coinciden y las descripciones tienen palabras en común" style="margin-left:4px;cursor:help">🔴</span>':
       isPoss?'<span title="Posible duplicado: mismo monto, mes y fuente — revisá si no son compras distintas" style="margin-left:4px;cursor:help">🟠</span>':'';
     return '<tr'+(bg?' style="'+bg+'"':'')+'>'+
@@ -1142,6 +1143,7 @@ function renderTx(){
       '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
       '<td style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
       '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':'Crédito')+'</span></td>'+
+      fechaCol+
       '<td style="text-align:right"><div class="td-mono">'+ars(t.valor)+'</div></td>'+
       '<td style="text-align:right"><div class="td-mono-sm">'+(usdVal>0?usdFmt(usdVal):'')+'</div></td>'+
       '<td><div class="action-btns">'+
@@ -1150,7 +1152,7 @@ function renderTx(){
       '</div></td>'+
     '</tr>';
   }).join('');
-  document.getElementById('tx-body').innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Categoría</th><th>Fuente</th><th>Método</th><th style="text-align:right">ARS</th><th style="text-align:right">USD</th><th style="width:70px"></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  document.getElementById('tx-body').innerHTML='<table><thead><tr><th>Mes</th><th>Descripción</th><th>Categoría</th><th>Fuente</th><th>Método</th><th style="color:var(--text3);font-weight:400">Cargado</th><th style="text-align:right">ARS</th><th style="text-align:right">USD</th><th style="width:70px"></th></tr></thead><tbody>'+rows+'</tbody></table>';
   document.querySelectorAll('.icon-btn-edit').forEach(btn=>{btn.addEventListener('click',function(){startEdit(parseInt(this.dataset.di));});});
   document.querySelectorAll('.icon-btn-del').forEach(btn=>{btn.addEventListener('click',function(){delRow(parseInt(this.dataset.di));});});
 }
