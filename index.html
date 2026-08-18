@@ -1115,9 +1115,9 @@ function renderTx(){
   });
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
-  const STOP=new Set(['DE','EL','LA','LOS','LAS','EN','Y','A','AL','DEL','UN','UNA','CON','POR','PARA','SE','SU','QUE','ES','SON','SA','SRL','VIAJE','PAGO','COMPRA','CUOTA']);
-  function normDesc(s){return(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/[\s\-\/,.]+/).filter(w=>w.length>2&&!STOP.has(w));}
-  function descSim(a,b){const ka=new Set(normDesc(a));return normDesc(b).some(w=>ka.has(w));}
+  const STOP=new Set(['DE','EL','LA','LOS','LAS','EN','Y','A','AL','DEL','UN','UNA','CON','POR','PARA','SE','SU','QUE','ES','SON','SA','SRL','VIAJE','PAGO','COMPRA','CUOTA','CUOTAS','MERPAGO','MERCADOPAGO','INTERESES','INTERES','PERCEPCION','PERCEP','PERC','IVA','SERV','SERV','DIG','DIGITAL','LEY','RGS','CABA','IIBB','PUNITORIOS','FINANCIEROS','CARGO','CARGOS','DEBITO','CREDITO','SER','SAS','SCO']);
+  function normDesc(s){return(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/[\s\-\/,.*()+]+/).filter(w=>w.length>3&&!STOP.has(w)&&!/^\d+$/.test(w));}
+  function descSim(a,b){const ka=new Set(normDesc(a));const matches=normDesc(b).filter(w=>ka.has(w));return matches.length>=2;}
   const dupGroups={};
   data.forEach((t,i)=>{if(t.fuente){const k=t.mes+'|'+t.valor+'|'+t.fuente;(dupGroups[k]=dupGroups[k]||[]).push(i);}});
   const definite=new Set(),possible=new Set();
