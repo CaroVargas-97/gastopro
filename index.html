@@ -1186,9 +1186,17 @@ async function saveRow(di){
   const val=parseFloat(document.getElementById('e-val').value);
   const notas=(document.getElementById('e-notas').value||'').trim();
   if(!desc||!val){showToast('Completá todos los campos');return;}
+  const oldCat=data[di].cat;
   data[di]={...data[di],mes,desc,cat,fuente,metodo:met,valor:val,usd:val/tc(),notas};
   await saveTransaction(data[di]);
-  editingIdx=null;renderTx();showToast('Cambios guardados');
+  editingIdx=null;renderTx();
+  if(cat!==oldCat){
+    const otros=data.filter((t,i)=>i!==di&&t.desc===desc&&t.cat!==cat);
+    if(otros.length&&confirm(`Hay ${otros.length} gasto${otros.length>1?'s':''} más con "${desc}". ¿Aplicar la categoría "${CATLAB[cat]||cat}" a todos?`)){
+      for(const t of otros){t.cat=cat;await saveTransaction(t);}
+      renderTx();showToast(`Categoría aplicada a ${otros.length+1} gastos`);
+    }else{showToast('Cambios guardados');}
+  }else{showToast('Cambios guardados');}
 }
 
 async function delRow(di){
