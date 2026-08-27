@@ -655,7 +655,7 @@ async function loadData(){
       sb.from('transacciones').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:true}),
       sb.from('historial').select('*').eq('user_id',currentUser.id).order('saved_at',{ascending:false})
     ]);
-    data=(txRes.data||[]).map(r=>({_id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',fecha:r.fecha||'',creadoEl:r.created_at?new Date(r.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'' })).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+    data=(txRes.data||[]).map(r=>{const d=r.created_at?new Date(r.created_at):null;return{_id:r.id,id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',fecha:r.fecha||'',creadoEl:d?d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'',creadoTs:d?d.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):''};}).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
     historial=(histRes.data||[]).map(r=>({id:r.id,card:r.card,mes:r.mes,anio:r.anio,count:r.cantidad,total:parseFloat(r.total)||0,totalAbonado:parseFloat(r.total_abonado)||0,totalAbonadoUSD:parseFloat(r.total_abonado_usd)||0,savedAt:new Date(r.saved_at).toLocaleDateString('es-AR')}));
     document.getElementById('hist-badge').textContent=historial.length;
     setSyncStatus('ok');
@@ -1192,13 +1192,22 @@ function showDuplicatesModal(){
       '<table style="width:100%;border-collapse:collapse">';
     grp.forEach((di,ri)=>{
       const t=data[di];
-      html+='<tr style="border-top:1px solid var(--border)">'+
-        '<td style="padding:10px 14px;width:32px"><input type="checkbox" class="dup-chk" data-di="'+di+'" '+(ri>0?'checked':'')+' style="width:16px;height:16px;cursor:pointer"></td>'+
-        '<td style="padding:10px 4px;font-size:13px;font-weight:600">'+t.desc+'</td>'+
-        '<td style="padding:10px 8px;font-size:11px;color:var(--text3);text-transform:capitalize">'+t.mes+'</td>'+
-        '<td style="padding:10px 8px;font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
-        '<td style="padding:10px 14px;font-size:11px;color:var(--text3)">cargado '+(t.creadoEl||'')+'</td>'+
-        '<td style="padding:10px 14px;text-align:right;font-size:13px;font-weight:700">'+ars(t.valor)+'</td>'+
+      const isKeeper=ri===0;
+      html+='<tr style="border-top:1px solid var(--border)'+(isKeeper?';background:var(--bg2)':'')+'">'  +
+        '<td style="padding:10px 14px;width:32px"><input type="checkbox" class="dup-chk" data-di="'+di+'" '+(isKeeper?'':'checked')+' style="width:16px;height:16px;cursor:pointer"></td>'+
+        '<td style="padding:10px 4px">'+
+          '<div style="font-size:13px;font-weight:600;color:var(--text)">'+t.desc+'</div>'+
+          (isKeeper?'<div style="font-size:10px;color:var(--green);font-weight:700;margin-top:2px">conservar</div>':'<div style="font-size:10px;color:var(--red,#dc2626);margin-top:2px">posible duplicado</div>')+
+        '</td>'+
+        '<td style="padding:10px 8px">'+
+          '<div style="font-size:11px;color:var(--text3);text-transform:capitalize">'+t.mes+'</div>'+
+          (t.fecha?'<div style="font-size:10px;color:var(--text3)">fecha tx: '+t.fecha+'</div>':'')+
+        '</td>'+
+        '<td style="padding:10px 8px;font-size:11px;color:var(--text3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(t.fuente||'')+'">'+
+          '<div style="font-weight:600;color:var(--text)">'+(t.fuente||'<span style="color:var(--text3);font-style:italic">sin fuente</span>')+'</div>'+
+          '<div style="font-size:10px;color:var(--text3)">cargado '+( t.creadoTs||t.creadoEl||'')+'</div>'+
+        '</td>'+
+        '<td style="padding:10px 14px;text-align:right;font-size:14px;font-weight:700">'+ars(t.valor)+'</td>'+
       '</tr>';
     });
     html+='</table></div>';
