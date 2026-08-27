@@ -563,7 +563,7 @@ const NAV_IDS=['overview','analisis','transacciones','inversiones','cargar','his
 
 const PROMPT=`Sos un extractor de gastos financieros en Argentina. Analizá el resumen de tarjeta y devolvé UN OBJETO JSON con dos campos:
 
-1. "total_ars": el monto TOTAL A PAGAR en pesos argentinos. En AMEX es el campo "Saldo a pagar $" que aparece en recuadro negro/destacado en la primera página — es el número más grande y remarcado, ejemplo: 4.055.468,26. En BBVA es "Saldo Actual $". NUNCA uses "Saldo Anterior $", ni el resultado de restar créditos a débitos. El total a pagar es siempre el número final que el cliente debe abonar, que incluye saldo anterior más nuevos débitos menos créditos.
+1. "total_ars": el monto TOTAL A PAGAR en pesos argentinos. En AMEX: la primera página muestra una fila con 3 números (Saldo Anterior / Créditos / Débitos) y el "Saldo a pagar $" aparece APARTE en un recuadro destacado o junto a "Próximo Vencimiento" — ese es el correcto, NO el tercer número de la fila. También puede aparecer como "2.360.645,99" junto a "07/09/26". En BBVA es "Saldo Actual $". NUNCA uses el valor de "Débitos $" ni "Saldo Anterior $".
 2. "total_usd": el monto total a pagar en dólares. En AMEX es "Saldo a pagar U$S". Si es 0,00 poner 0.
 3. "transacciones": array con TODOS los gastos individuales, cada uno con:
 {"mes":"enero|febrero|...|diciembre","fecha":"DD/MM","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"DEPARTAMENTO|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA|VIAJES|TEAM|COMIDAS|SUSCRIPCIONES|MUN|INVERSIONES|AMEX LUIS|FRANCES LUIS|SANTANDER LUIS|SALUD"}
