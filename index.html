@@ -1666,14 +1666,15 @@ function renderInv(){
   if(!body)return;
   if(!invData.length){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sin movimientos todavía</div>';return;}
   const rows=invData.map(function(m){
-    const arsHoy=m.valor_usd>0?Math.round(m.valor_usd*tc()):0;
+    const T=tc();
+    const arsHoy=Math.round((parseFloat(m.valor_ars)||0)+(parseFloat(m.valor_usd)||0)*T);
     return '<tr>'+
       '<td style="font-size:11px;color:var(--text3)">'+(m.fecha||'')+'</td>'+
       '<td class="td-desc">'+(m.descripcion||'')+'</td>'+
       '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
       '<td style="text-align:right"><div class="td-mono">'+(m.valor_ars>0?ars(m.valor_ars):'-')+'</div></td>'+
+      '<td style="text-align:right"><div class="td-mono-sm" style="color:#0891b2">'+(m.valor_usd>0?'U$S '+parseFloat(m.valor_usd).toLocaleString('es-AR',{maximumFractionDigits:0}):'-')+'</div></td>'+
       '<td style="text-align:right"><div class="td-mono-sm" style="color:#dc2626">'+(arsHoy>0?ars(arsHoy):'-')+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm" style="color:#0891b2">'+(m.valor_usd>0?'U$S '+parseFloat(m.valor_usd).toLocaleString('es-AR',{maximumFractionDigits:2}):'-')+'</div></td>'+
       '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
       '<td><div class="action-btns">'+
         '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="INVERSIONES" data-action="edit"><i class="ti ti-pencil"></i></button>'+
@@ -1681,7 +1682,7 @@ function renderInv(){
       '</div></td>'+
     '</tr>';
   }).join('');
-  body.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">ARS hoy</th><th style="text-align:right">USD</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  body.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cargado por</th><th style="text-align:right">ARS</th><th style="text-align:right">USD</th><th style="text-align:right">ARS hoy</th><th style="text-align:right">TC</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
   body.querySelectorAll('button[data-id]').forEach(function(btn){
     btn.addEventListener('click',function(){
       if(this.dataset.action==='edit')startEditCuenta(this.dataset.id,this.dataset.cuenta);
