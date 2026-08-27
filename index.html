@@ -415,9 +415,9 @@ tr:hover .action-btns{opacity:1}
             <div style="display:flex;flex-direction:column;gap:14px">
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
                 <div class="ff"><label class="flabel">Tarjeta / Servicio</label><input class="finput" id="dz-card" type="text" placeholder="AMEX, BBVA..."></div>
-                <div class="ff"><label class="flabel">Mes</label>
+                <div class="ff"><label class="flabel">Mes <span style="font-weight:400;color:var(--text3)">(la IA lo detecta sola)</span></label>
                   <select class="finput" id="dz-mes">
-                    <option value="">— mes —</option>
+                    <option value="">Detectar automáticamente</option>
                     <option>enero</option><option>febrero</option><option>marzo</option><option>abril</option>
                     <option>mayo</option><option>junio</option><option>julio</option><option>agosto</option>
                     <option>septiembre</option><option>octubre</option><option>noviembre</option><option>diciembre</option>
@@ -568,6 +568,7 @@ const PROMPT=`Sos un extractor de gastos financieros en Argentina. Analizá el r
 3. "transacciones": array con TODOS los gastos individuales, cada uno con:
 {"mes":"enero|febrero|...|diciembre","fecha":"DD/MM","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"DEPARTAMENTO|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA|VIAJES|TEAM|COMIDAS|SUSCRIPCIONES|MUN|INVERSIONES|AMEX LUIS|FRANCES LUIS|SANTANDER LUIS|SALUD"}
 
+El campo "mes" debe ser detectado del propio contenido del resumen. Los resúmenes bancarios suelen corresponder al mes ANTERIOR al mes en que se reciben — si el resumen dice "período julio 2026" o las fechas de las transacciones son de julio, usá "julio". No asumas el mes actual.
 El campo "fecha" es la fecha de la transacción tal como figura en el resumen (ej: "05/08"). Si no aparece fecha, dejarlo como "".
 
 REGLA DE MONEDAS:
