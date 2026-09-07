@@ -508,7 +508,6 @@ function filterHist(q){
 
 async function loadHistVida(){
   const box=document.getElementById('hist-vida');
-  if(!box)return;
   try{
     const {data,error}=await sb.from('transacciones')
       .select('id,descripcion,valor,mes,metodo,fuente,cat,notas,created_at')
@@ -517,6 +516,7 @@ async function loadHistVida(){
     histVidaCache=data||[];
     data.forEach(r=>{editCache[r.id]=r;});
     updateMesTotal();
+    if(!box)return;
     if(!data.length){box.innerHTML='<div class="hist-empty">Sin gastos cargados aún</div>';return;}
     const q=document.getElementById('hist-search')?.value||'';
     filterHist(q);
@@ -674,7 +674,8 @@ function formVida(){
   const mes=mesActual();
   const mesLabel=mes.charAt(0).toUpperCase()+mes.slice(1);
   const fuenteOpts=FUENTES.map(f=>'<option value="'+f+'">'+f+'</option>').join('');
-  return'<div class="summary-card">'+
+  return'<div class="summary-card" style="position:relative">'+
+      '<button class="cal-link" onclick="openCalModal(\'vida\')" type="button" style="position:absolute;top:14px;right:14px;font-size:20px;background:none;border:none;cursor:pointer">📅</button>'+
       '<div class="sum-label">Total · '+mesLabel+'</div>'+
       '<div class="sum-amt" id="mes-total">—</div>'+
       '<div class="sum-sub" id="mes-count">cargando...</div>'+
@@ -700,15 +701,7 @@ function formVida(){
         '<input class="minput" type="text" id="v-notas" placeholder="Detalle adicional (opcional)">'+
       '</div>'+
       '<button class="btn-save" onclick="saveVida()">Guardar gasto</button>'+
-    '</div>'+
-    '<div class="hist-header">'+
-      '<span class="hist-title">Recientes</span>'+
-      '<div class="hist-header-actions">'+
-        '<input class="hist-search" type="text" id="hist-search" placeholder="Buscar..." oninput="filterHist(this.value)">'+
-        '<button class="cal-link" onclick="openCalModal(\'vida\')" type="button">📅</button>'+
-      '</div>'+
-    '</div>'+
-    '<div class="hist-list" id="hist-vida"><div class="hist-loading">Cargando...</div></div>';
+    '</div>';
 }
 
 
