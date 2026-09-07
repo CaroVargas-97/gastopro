@@ -210,6 +210,10 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
       <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
       Vida
     </button>
+    <button class="nav-tab" onclick="openCalModal('vida')" id="tab-calendario">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Calendario
+    </button>
     <button class="nav-tab" onclick="goTab('historial',this)" id="tab-historial">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Historial
@@ -674,8 +678,7 @@ function formVida(){
   const mes=mesActual();
   const mesLabel=mes.charAt(0).toUpperCase()+mes.slice(1);
   const fuenteOpts=FUENTES.map(f=>'<option value="'+f+'">'+f+'</option>').join('');
-  return'<div class="summary-card" style="position:relative">'+
-      '<button class="cal-link" onclick="openCalModal(\'vida\')" type="button" style="position:absolute;top:14px;right:14px;font-size:20px;background:none;border:none;cursor:pointer;z-index:2">📅</button>'+
+  return'<div class="summary-card">'+
       '<div class="sum-label">Total · '+mesLabel+'</div>'+
       '<div class="sum-amt" id="mes-total">—</div>'+
       '<div class="sum-sub" id="mes-count">cargando...</div>'+
