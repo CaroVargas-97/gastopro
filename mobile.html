@@ -675,7 +675,7 @@ function formVida(){
   const mesLabel=mes.charAt(0).toUpperCase()+mes.slice(1);
   const fuenteOpts=FUENTES.map(f=>'<option value="'+f+'">'+f+'</option>').join('');
   return'<div class="summary-card" style="position:relative">'+
-      '<button class="cal-link" onclick="openCalModal(\'vida\')" type="button" style="position:absolute;top:14px;right:14px;font-size:20px;background:none;border:none;cursor:pointer">📅</button>'+
+      '<button class="cal-link" onclick="openCalModal(\'vida\')" type="button" style="position:absolute;top:14px;right:14px;font-size:20px;background:none;border:none;cursor:pointer;z-index:2">📅</button>'+
       '<div class="sum-label">Total · '+mesLabel+'</div>'+
       '<div class="sum-amt" id="mes-total">—</div>'+
       '<div class="sum-sub" id="mes-count">cargando...</div>'+
