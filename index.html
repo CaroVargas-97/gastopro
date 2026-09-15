@@ -21,6 +21,7 @@
   --font:'Inter',sans-serif;
   --sidebar-bg:#14141c;--sidebar-bg2:#1c1c28;--sidebar-border:rgba(255,255,255,.07);
   --sidebar-text:rgba(255,255,255,.86);--sidebar-text2:rgba(255,255,255,.42);--sidebar-text3:rgba(255,255,255,.24);
+  --usd:#0891b2;--usd-bg:#e6f7fa;
 }
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh;transition:background .2s,color .2s;-webkit-font-smoothing:antialiased}
 .td-mono,.metric-value,.dash-ars,.cuenta-val,.mes-ars,.sum-amt,td.num,.vida-stat-val{font-feature-settings:"tnum" 1,"lnum" 1;font-variant-numeric:tabular-nums}
@@ -31,6 +32,7 @@ body.dark{
   --accent-light:rgba(79,63,245,.18);
   --green-bg:rgba(18,135,90,.15);--red-bg:rgba(214,60,60,.15);--amber-bg:rgba(193,122,31,.15);
   --shadow:0 1px 2px rgba(0,0,0,.4);--shadow-md:0 8px 24px -4px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.3);
+  --usd:#22d3ee;--usd-bg:rgba(34,211,238,.15);
 }
 body.dark tr:hover td{background:var(--bg3)}
 body.dark .login-card{background:var(--bg2)}
@@ -422,28 +424,27 @@ tr:hover .action-btns{opacity:1}
 
       <!-- INVERSIONES -->
       <div class="section" id="sec-inversiones">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
           <div>
-            <div style="font-size:14px;font-weight:700;color:var(--text)">Inversiones</div>
+            <div style="font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.3px">Inversiones</div>
             <div style="font-size:12px;color:var(--text3);margin-top:2px">Movimientos de capital — visible para todos</div>
           </div>
           <button class="btn btn-accent" onclick="showInvForm()"><i class="ti ti-plus"></i> Agregar movimiento</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-          <div class="card" style="margin:0;border-top:2px solid #dc2626">
-            <div class="card-title" style="margin-bottom:6px">Capital en pesos</div>
-            <div id="inv-total-ars" style="font-size:26px;font-weight:700;color:var(--text)">$0</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:5px">TC hoy: $<span id="inv-tc-show">1370</span></div>
+        <div class="widget-grid widget-grid-2" style="margin-bottom:32px">
+          <div class="w-card" style="display:flex;align-items:center;gap:14px">
+            <span class="dash-icon-badge" style="background:var(--red-bg);color:var(--red);width:38px;height:38px;font-size:17px"><i class="ti ti-currency-dollar"></i></span>
+            <div><div class="w-metric-lbl">Capital en pesos</div><div class="w-metric-val" id="inv-total-ars">$0</div><div class="w-metric-sub">TC hoy: $<span id="inv-tc-show">1370</span></div></div>
           </div>
-          <div class="card" style="margin:0;border-top:2px solid #0891b2">
-            <div class="card-title" style="margin-bottom:6px">Capital en dólares</div>
-            <div id="inv-total-usd" style="font-size:26px;font-weight:700;color:#0891b2">U$S 0</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:5px"><span id="inv-count">0</span> movimientos registrados</div>
+          <div class="w-card" style="display:flex;align-items:center;gap:14px">
+            <span class="dash-icon-badge" style="background:var(--usd-bg);color:var(--usd);width:38px;height:38px;font-size:17px"><i class="ti ti-currency-dollar"></i></span>
+            <div><div class="w-metric-lbl">Capital en dólares</div><div class="w-metric-val" id="inv-total-usd" style="color:var(--usd)">U$S 0</div><div class="w-metric-sub"><span id="inv-count">0</span> movimientos registrados</div></div>
           </div>
         </div>
-        <div id="inv-analisis" style="margin-bottom:12px"></div>
+        <div id="inv-analisis"></div>
         <div id="inv-form-area"></div>
-        <div class="card" style="padding:0;overflow:hidden"><div class="tx-wrap"><div id="inv-body"></div></div></div>
+        <div class="dash-section-lbl"><i class="ti ti-list" style="font-size:13px"></i> Todos los movimientos</div>
+        <div class="w-card" style="padding:0;overflow:hidden"><div class="tx-wrap"><div id="inv-body"></div></div></div>
       </div>
 
       <!-- CARGAR -->
@@ -1733,22 +1734,21 @@ function buildInvAnalisis(data){
   const meses=Object.keys(byMes).sort();
   const maxV=meses.length?Math.max.apply(null,meses.map(function(m){return byMes[m].arsV+byMes[m].usdV*T;})):1;
 
-  const mesPills=meses.map(function(m,i){
+  const mesRows=meses.slice().reverse().map(function(m,ri){
+    const i=meses.length-1-ri;
     const{arsV,usdV,count}=byMes[m];
     const v=arsV+usdV*T;
     const prev=i>0?byMes[meses[i-1]]:null;
     const prevV=prev?prev.arsV+prev.usdV*T:0;
     const delta=prevV>0?(v-prevV)/prevV*100:null;
-    const deltaHtml=delta!==null?'<span class="delta-pill '+(delta>0?'delta-up':'delta-down')+'">'+(delta>0?'▲':'▼')+Math.abs(Math.round(delta))+'%</span>':'';
+    const deltaHtml=delta!==null?'<span class="delta-pill '+(delta>0?'delta-up':'delta-down')+'" style="margin-left:8px">'+(delta>0?'▲':'▼')+Math.abs(Math.round(delta))+'%</span>':'';
     const barPct=maxV>0?Math.round(v/maxV*100):0;
     const parts=m.split('-');
     const moLabel=(moNames[parseInt(parts[1])-1]||parts[1])+' '+parts[0].slice(2);
-    return'<div class="mes-card">'+
-      '<div class="mes-name" style="display:flex;justify-content:space-between;align-items:center"><span>'+moLabel+'</span>'+deltaHtml+'</div>'+
-      '<div class="mes-ars">'+ars(Math.round(v))+'</div>'+
-      (usdV>0?'<div style="font-size:10px;color:#0891b2;margin-top:2px">U$S '+Math.round(usdV).toLocaleString('es-AR')+'</div>':'<div style="font-size:10px;margin-top:2px">&nbsp;</div>')+
-      '<div style="height:3px;background:var(--bg3);border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:3px;background:#dc2626;border-radius:2px;width:'+barPct+'%"></div></div>'+
-      '<div style="font-size:9px;color:var(--text3);margin-top:6px;font-weight:600">'+count+' mov.</div>'+
+    return'<div class="mlist-row">'+
+      '<div class="mlist-name">'+moLabel+'</div>'+
+      '<div class="mlist-bar-track"><div class="mlist-bar-fill" style="background:var(--red);width:'+barPct+'%"></div></div>'+
+      '<div class="mlist-amt">'+ars(Math.round(v))+deltaHtml+'</div>'+
     '</div>';
   }).join('');
 
@@ -1758,28 +1758,29 @@ function buildInvAnalisis(data){
   }).slice(0,3);
   const topHtml=top3.map(function(m,i){
     const v=(m.valor_ars||0)+((m.valor_usd||0)*T);
-    return'<div style="display:flex;align-items:center;gap:8px'+(i<top3.length-1?';margin-bottom:9px':'')+'">'+
-      '<div style="width:18px;height:18px;border-radius:50%;background:rgba(220,38,38,.12);color:#dc2626;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</div>'+
-      '<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(m.descripcion||'–')+'</div>'+
+    return'<div style="display:flex;align-items:center;gap:10px'+(i<top3.length-1?';margin-bottom:12px':'')+'">'+
+      '<div style="width:22px;height:22px;border-radius:50%;background:var(--red-bg);color:var(--red);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(m.descripcion||'–')+'</div>'+
       '<div style="font-size:10px;color:var(--text3)">'+(m.fecha||'')+'</div></div>'+
-      '<div style="font-size:12px;font-weight:700;flex-shrink:0">'+ars(Math.round(v))+'</div>'+
+      '<div style="font-size:13px;font-weight:700;flex-shrink:0">'+ars(Math.round(v))+'</div>'+
     '</div>';
   }).join('');
 
-  return(meses.length>1?'<div class="mes-grid" style="margin-bottom:12px">'+mesPills+'</div>':'')+
-  '<div class="g2" style="margin-bottom:0">'+
-    '<div class="card" style="margin:0">'+
-      '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Valor total hoy</div>'+
-      '<div style="font-size:24px;font-weight:700;color:var(--text);margin-bottom:2px">'+ars(Math.round(valorHoy))+'</div>'+
-      '<div style="font-size:11px;color:var(--text3);margin-bottom:14px">ARS + USD al TC actual</div>'+
-      '<div style="padding-top:12px;border-top:1px solid var(--border)">'+
-        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:11px;color:var(--text2)">Solo en ARS</span><span style="font-size:12px;font-weight:600">'+ars(totalARS)+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:11px;color:var(--text2)">Solo en USD</span><span style="font-size:12px;font-weight:600;color:#0891b2">U$S '+Math.round(totalUSD).toLocaleString('es-AR')+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:11px;color:var(--text2)">USD valorizado</span><span style="font-size:12px;font-weight:600;color:#dc2626">'+ars(Math.round(totalUSD*T))+'</span></div>'+
+  return(meses.length>1?'<div class="dash-section-lbl"><i class="ti ti-calendar-stats" style="font-size:13px"></i> Evolución mensual</div><div class="w-card" style="margin-bottom:32px"><div id="inv-mes-list" style="max-height:260px;overflow-y:auto">'+mesRows+'</div></div>':'')+
+  '<div class="dash-section-lbl"><i class="ti ti-chart-pie" style="font-size:13px"></i> Análisis</div>'+
+  '<div class="widget-grid widget-grid-2">'+
+    '<div class="w-card">'+
+      '<div class="w-metric-lbl">Valor total hoy</div>'+
+      '<div class="w-metric-val" style="font-size:24px">'+ars(Math.round(valorHoy))+'</div>'+
+      '<div class="w-metric-sub" style="margin-bottom:14px">ARS + USD al TC actual</div>'+
+      '<div style="padding-top:14px;border-top:1px solid var(--border)">'+
+        '<div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:11px;color:var(--text2)">Solo en ARS</span><span style="font-size:12px;font-weight:700">'+ars(totalARS)+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:11px;color:var(--text2)">Solo en USD</span><span style="font-size:12px;font-weight:700;color:var(--usd)">U$S '+Math.round(totalUSD).toLocaleString('es-AR')+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:11px;color:var(--text2)">USD valorizado</span><span style="font-size:12px;font-weight:700;color:var(--red)">'+ars(Math.round(totalUSD*T))+'</span></div>'+
       '</div>'+
     '</div>'+
-    '<div class="card" style="margin:0">'+
-      '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Mayores movimientos</div>'+
+    '<div class="w-card">'+
+      '<div class="w-metric-lbl" style="margin-bottom:14px">Mayores movimientos</div>'+
       topHtml+
     '</div>'+
   '</div>';
@@ -1808,8 +1809,8 @@ function renderInv(){
       '<td class="td-desc">'+(m.descripcion||'')+'</td>'+
       '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
       '<td style="text-align:right"><div class="td-mono">'+(m.valor_ars>0?ars(m.valor_ars):'-')+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm" style="color:#0891b2">'+(m.valor_usd>0?'U$S '+parseFloat(m.valor_usd).toLocaleString('es-AR',{maximumFractionDigits:0}):'-')+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm" style="color:#dc2626">'+(arsHoy>0?ars(arsHoy):'-')+'</div></td>'+
+      '<td style="text-align:right"><div class="td-mono-sm" style="color:var(--usd)">'+(m.valor_usd>0?'U$S '+parseFloat(m.valor_usd).toLocaleString('es-AR',{maximumFractionDigits:0}):'-')+'</div></td>'+
+      '<td style="text-align:right"><div class="td-mono-sm" style="color:var(--red)">'+(arsHoy>0?ars(arsHoy):'-')+'</div></td>'+
       '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
       '<td><div class="action-btns">'+
         '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="INVERSIONES" data-action="edit"><i class="ti ti-pencil"></i></button>'+
@@ -1829,9 +1830,9 @@ function renderInv(){
 function showInvForm(){
   const hoy=new Date().toISOString().split('T')[0];
   const div=document.createElement('div');
-  div.className='card';div.style.marginBottom='12px';
+  div.className='w-card';div.style.marginBottom='24px';
   div.innerHTML=
-    '<div class="card-head"><span class="card-title">Nuevo movimiento de inversión</span><button class="btn" id="if-close"><i class="ti ti-x"></i></button></div>'+
+    '<div class="w-card-head"><span class="w-card-title">Nuevo movimiento de inversión</span><button class="btn" id="if-close"><i class="ti ti-x"></i></button></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'+
       '<div class="ff"><label class="flabel">Fecha</label><input class="finput" type="date" id="if-fecha" value="'+hoy+'"></div>'+
       '<div class="ff"><label class="flabel">Tipo de cambio del día</label><input class="finput" type="number" id="if-tc" value="'+tc()+'" placeholder="1370"></div>'+
