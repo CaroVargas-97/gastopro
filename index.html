@@ -627,6 +627,7 @@ let data=[];
 let invData=[];
 let historial=[];
 let charts={};
+let invChartCache=null;
 function chartColors(){
   const dark=document.body.classList.contains('dark');
   const cs=getComputedStyle(document.body);
@@ -635,7 +636,8 @@ function chartColors(){
     text3:(cs.getPropertyValue('--text3')||'').trim()||(dark?'#63626c':'#9797a3'),
     grid:dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.05)',
     cardBg:(cs.getPropertyValue('--bg2')||'').trim()||(dark?'#18181d':'#ffffff'),
-    barDim:dark?'rgba(79,63,245,.35)':'#c9c2ff'
+    barDim:dark?'rgba(79,63,245,.35)':'#c9c2ff',
+    usd:(cs.getPropertyValue('--usd')||'').trim()||(dark?'#22d3ee':'#0891b2')
   };
 }
 let editingIdx=null;
@@ -752,6 +754,7 @@ function toggleTheme(){
   const icon=document.getElementById('theme-icon');
   if(icon)icon.className=dark?'ti ti-sun':'ti ti-moon';
   if(document.getElementById('sec-analisis')?.classList.contains('active'))renderAnalisis();
+  if(document.getElementById('sec-inversiones')?.classList.contains('active'))renderInv();
 }
 function applyTheme(){
   let saved='light';try{saved=localStorage.getItem('gp_theme')||'light';}catch(e){}
@@ -1732,6 +1735,7 @@ function buildInvAnalisis(data){
     byMes[k].count++;
   });
   const meses=Object.keys(byMes).sort();
+  invChartCache={byMes:byMes,meses:meses,T:T};
   const maxV=meses.length?Math.max.apply(null,meses.map(function(m){return byMes[m].arsV+byMes[m].usdV*T;})):1;
 
   const mesRows=meses.slice().reverse().map(function(m,ri){
@@ -1766,24 +1770,65 @@ function buildInvAnalisis(data){
     '</div>';
   }).join('');
 
-  return(meses.length>1?'<div class="dash-section-lbl"><i class="ti ti-calendar-stats" style="font-size:13px"></i> Evolución mensual</div><div class="w-card" style="margin-bottom:32px"><div id="inv-mes-list" style="max-height:260px;overflow-y:auto">'+mesRows+'</div></div>':'')+
-  '<div class="dash-section-lbl"><i class="ti ti-chart-pie" style="font-size:13px"></i> Análisis</div>'+
-  '<div class="widget-grid widget-grid-2">'+
+  return '<div class="dash-section-lbl"><i class="ti ti-chart-line" style="font-size:13px"></i> Tendencias</div>'+
+  '<div class="widget-grid widget-grid-2" style="margin-bottom:32px">'+
     '<div class="w-card">'+
-      '<div class="w-metric-lbl">Valor total hoy</div>'+
-      '<div class="w-metric-val" style="font-size:24px">'+ars(Math.round(valorHoy))+'</div>'+
-      '<div class="w-metric-sub" style="margin-bottom:14px">ARS + USD al TC actual</div>'+
-      '<div style="padding-top:14px;border-top:1px solid var(--border)">'+
-        '<div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:11px;color:var(--text2)">Solo en ARS</span><span style="font-size:12px;font-weight:700">'+ars(totalARS)+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:11px;color:var(--text2)">Solo en USD</span><span style="font-size:12px;font-weight:700;color:var(--usd)">U$S '+Math.round(totalUSD).toLocaleString('es-AR')+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:11px;color:var(--text2)">USD valorizado</span><span style="font-size:12px;font-weight:700;color:var(--red)">'+ars(Math.round(totalUSD*T))+'</span></div>'+
+      '<div class="w-card-head"><span class="w-card-title">Evolución mensual</span></div>'+
+      '<div style="position:relative;height:200px"><canvas id="cInvBar"></canvas></div>'+
+    '</div>'+
+    '<div class="w-card">'+
+      '<div class="w-card-head"><span class="w-card-title">Distribución ARS vs USD</span></div>'+
+      '<div style="display:flex;align-items:center;gap:24px">'+
+        '<div style="position:relative;height:170px;width:170px;flex-shrink:0"><canvas id="cInvDonut"></canvas></div>'+
+        '<div id="inv-donut-legend" style="flex:1;min-width:0">'+
+          '<div class="legend-row"><span class="legend-dot" style="background:var(--red)"></span><span class="legend-lbl">ARS</span><span class="legend-amt">'+ars(totalARS)+'</span></div>'+
+          '<div class="legend-row"><span class="legend-dot" style="background:var(--usd)"></span><span class="legend-lbl">USD</span><span class="legend-amt">'+ars(Math.round(totalUSD*T))+'</span></div>'+
+        '</div>'+
       '</div>'+
     '</div>'+
+  '</div>'+
+  '<div class="dash-section-lbl"><i class="ti ti-arrows-left-right" style="font-size:13px"></i> Comparativas</div>'+
+  '<div class="widget-grid widget-grid-2" style="margin-bottom:32px">'+
     '<div class="w-card">'+
-      '<div class="w-metric-lbl" style="margin-bottom:14px">Mayores movimientos</div>'+
+      '<div class="w-card-head"><span class="w-card-title">Resumen mensual</span></div>'+
+      '<div id="inv-mes-list" style="max-height:260px;overflow-y:auto">'+(mesRows||'<div style="color:var(--text3);font-size:12px;padding:8px 0">Sin fechas registradas</div>')+'</div>'+
+    '</div>'+
+    '<div class="w-card">'+
+      '<div class="w-card-head"><span class="w-card-title">Mayores movimientos</span></div>'+
       topHtml+
     '</div>'+
+  '</div>'+
+  '<div class="dash-section-lbl"><i class="ti ti-history" style="font-size:13px"></i> Evolución histórica</div>'+
+  '<div class="w-card" style="margin-bottom:0">'+
+    '<div class="w-card-head"><span class="w-card-title">Acumulado — valor total hoy: '+ars(Math.round(valorHoy))+'</span></div>'+
+    '<div style="position:relative;height:220px"><canvas id="cInvAcum"></canvas></div>'+
   '</div>';
+}
+
+function renderInvCharts(byMesArg,mesesArg,T){
+  const cc=chartColors();
+  const meses=mesesArg,byMes=byMesArg;
+  const moNames=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const labels=meses.map(function(m){const p=m.split('-');return(moNames[parseInt(p[1])-1]||p[1])+' '+p[0].slice(2);});
+  try{
+    if(charts.invBar)charts.invBar.destroy();
+    const cvs=document.getElementById('cInvBar');
+    if(cvs)charts.invBar=new Chart(cvs.getContext('2d'),{type:'bar',data:{labels:labels,datasets:[{data:meses.map(function(m){return Math.round(byMes[m].arsV+byMes[m].usdV*T);}),backgroundColor:meses.map(function(m,i){return i===meses.length-1?'#d63c3c':cc.barDim;}),borderRadius:6,maxBarThickness:36}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:cc.grid},ticks:{color:cc.text3,font:{size:10},callback:function(v){return'$'+(v/1000000).toFixed(1)+'M';}}},x:{grid:{display:false},ticks:{color:cc.text3,font:{size:10,weight:600}}}}}});
+  }catch(e){console.warn('cInvBar error:',e);}
+  try{
+    const totalARS=invData.reduce(function(s,m){return s+(parseFloat(m.valor_ars)||0);},0);
+    const totalUSD=invData.reduce(function(s,m){return s+(parseFloat(m.valor_usd)||0);},0);
+    if(charts.invDonut)charts.invDonut.destroy();
+    const cvs2=document.getElementById('cInvDonut');
+    if(cvs2)charts.invDonut=new Chart(cvs2.getContext('2d'),{type:'doughnut',data:{labels:['ARS','USD valorizado'],datasets:[{data:[totalARS,totalUSD*T],backgroundColor:['#d63c3c',cc.usd],borderWidth:2,borderColor:cc.cardBg}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}});
+  }catch(e){console.warn('cInvDonut error:',e);}
+  try{
+    let acA=0,acU=0;const aA=[],aU=[];
+    meses.forEach(function(m){acA+=byMes[m].arsV;acU+=byMes[m].usdV;aA.push(Math.round(acA+acU*T));});
+    if(charts.invAcum)charts.invAcum.destroy();
+    const cvs3=document.getElementById('cInvAcum');
+    if(cvs3)charts.invAcum=new Chart(cvs3.getContext('2d'),{type:'line',data:{labels:labels,datasets:[{label:'Valor acumulado',data:aA,borderColor:'#d63c3c',backgroundColor:'rgba(214,60,60,.08)',fill:true,tension:.35,pointRadius:3,pointHoverRadius:5,pointBackgroundColor:'#d63c3c',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{display:false}},scales:{y:{grid:{color:cc.grid},ticks:{color:cc.text3,font:{size:10},callback:function(v){return'$'+(v/1000000).toFixed(1)+'M';}}},x:{grid:{display:false},ticks:{color:cc.text3,font:{size:10,weight:600}}}}}});
+  }catch(e){console.warn('cInvAcum error:',e);}
 }
 
 /* INVERSIONES */
@@ -1797,7 +1842,10 @@ function renderInv(){
   const tcShowEl=document.getElementById('inv-tc-show');
   if(tcShowEl)tcShowEl.textContent=Math.round(tc()).toLocaleString('es-AR');
   const invAnalisisEl=document.getElementById('inv-analisis');
-  if(invAnalisisEl)invAnalisisEl.innerHTML=buildInvAnalisis(invData);
+  if(invAnalisisEl){
+    invAnalisisEl.innerHTML=buildInvAnalisis(invData);
+    if(invChartCache)renderInvCharts(invChartCache.byMes,invChartCache.meses,invChartCache.T);
+  }
   const body=document.getElementById('inv-body');
   if(!body)return;
   if(!invData.length){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sin movimientos todavía</div>';return;}
