@@ -252,7 +252,7 @@ const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const CATS_VIDA=['DEPARTAMENTO','TARJETAS','COMIDAS','AUTO','MOTO','VIAJES','SUSCRIPCIONES','CAJA CHICA','OTROS','AMEX LUIS','FRANCES LUIS','SANTANDER LUIS','SALUD'];
-const FUENTES=['AMEX','FRANCES','SANTANDER','BBVA','EFECTIVO','OTRA'];
+const FUENTES=['AMEX','FRANCES','SANTANDER','BBVA','OTRA'];
 const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones','AMEX LUIS':'Amex Luis','FRANCES LUIS':'Francés Luis','SANTANDER LUIS':'Santander Luis','SALUD':'Salud'};
 
 let currentUser=null;
@@ -714,7 +714,7 @@ async function saveVida(){
   const desc=document.getElementById('v-desc').value.trim();
   const val=parseFloat(document.getElementById('v-val').value);
   const met=document.getElementById('v-met').value;
-  const fuente=document.getElementById('v-fuente').value;
+  const fuente=met==='EFECTIVO'?'':document.getElementById('v-fuente').value;
   const notas=document.getElementById('v-notas').value.trim();
   if(!desc||!val){showToast('Completá descripción y monto');return;}
   const btn=document.querySelector('.btn-save');
