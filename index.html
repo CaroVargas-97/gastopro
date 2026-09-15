@@ -453,7 +453,7 @@ tr:hover .action-btns{opacity:1}
             <div class="card-head"><span class="card-title">Carga automática con IA</span><span class="badge b-tar">INTELIGENTE</span></div>
             <div style="display:flex;flex-direction:column;gap:14px">
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-                <div class="ff"><label class="flabel">Tarjeta / Servicio</label><input class="finput" id="dz-card" type="text" placeholder="AMEX, BBVA..."></div>
+                <div class="ff"><label class="flabel">Tarjeta / Servicio</label><input class="finput" id="dz-card" type="text" list="fuente-datalist" placeholder="AMEX, BBVA..."></div>
                 <div class="ff"><label class="flabel">Mes <span style="font-weight:400;color:var(--text3)">(la IA lo detecta sola)</span></label>
                   <select class="finput" id="dz-mes">
                     <option value="">Detectar automáticamente</option>
@@ -516,7 +516,7 @@ tr:hover .action-btns{opacity:1}
               <div class="ff"><label class="flabel">Valor ARS</label><input class="finput" id="mVal" type="number" placeholder="0"></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-              <div class="ff"><label class="flabel">Fuente / Tarjeta</label><input class="finput" id="mFuente" type="text" placeholder="AMEX, BBVA..."></div>
+              <div class="ff"><label class="flabel">Fuente / Tarjeta</label><input class="finput" id="mFuente" type="text" list="fuente-datalist" placeholder="AMEX, BBVA..."></div>
               <div class="ff"><label class="flabel">Notas</label><input class="finput" id="mNotas" type="text" placeholder="Opcional..."></div>
             </div>
             <button class="btn btn-accent" style="width:100%;padding:10px;justify-content:center" onclick="addManual()">
@@ -582,6 +582,7 @@ tr:hover .action-btns{opacity:1}
 </div>
 
 <div class="toast" id="toast"><i class="ti ti-check" style="font-size:14px;color:#4ade80"></i><span id="toast-msg"></span></div>
+<datalist id="fuente-datalist"></datalist>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -1120,6 +1121,8 @@ function goToMes(mes){
 }
 
 /* TRANSACCIONES */
+function normFuente(s){return(s||'').trim().replace(/\s+/g,' ').toUpperCase();}
+
 function populateMesFilter(){
   const fm=document.getElementById('fMes');
   while(fm.options.length>1)fm.remove(1);
@@ -1131,6 +1134,8 @@ function populateMesFilter(){
   fuentes.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;ff.appendChild(o);});
   if(data.some(t=>!t.fuente)){const o=document.createElement('option');o.value='__sin_fuente__';o.textContent='(sin fuente)';ff.appendChild(o);}
   if(fuentes.includes(prev)||prev==='__sin_fuente__')ff.value=prev;
+  const dl=document.getElementById('fuente-datalist');
+  if(dl)dl.innerHTML=fuentes.map(f=>'<option value="'+f+'">').join('');
 }
 
 function renderTx(){
@@ -1297,7 +1302,7 @@ function startEdit(di){
   tr.innerHTML='<td><select class="edit-sel" id="e-mes" style="width:90px">'+mesopts+'</select></td>'+
     '<td><input class="edit-inp" id="e-desc" value="'+t.desc+'" style="min-width:140px"><input class="edit-inp" id="e-notas" value="'+(t.notas||'')+'" placeholder="Notas..." style="min-width:140px;margin-top:3px;font-size:11px"></td>'+
     '<td><select class="edit-sel" id="e-cat">'+catopts+'</select></td>'+
-    '<td><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
+    '<td><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" list="fuente-datalist" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
     '<td><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option></select></td>'+
     '<td style="text-align:right"><input class="edit-inp" id="e-val" value="'+t.valor+'" type="number" style="width:100px;text-align:right"></td>'+
     '<td style="text-align:right;font-size:11px;color:var(--text3)">'+usdFmt(t.valor/T)+'</td>'+
@@ -1314,7 +1319,7 @@ async function saveRow(di){
   const mes=document.getElementById('e-mes').value;
   const desc=document.getElementById('e-desc').value.trim().toUpperCase();
   const cat=document.getElementById('e-cat').value;
-  const fuente=document.getElementById('e-fuente').value.trim();
+  const fuente=normFuente(document.getElementById('e-fuente').value);
   const met=document.getElementById('e-met').value;
   const val=parseFloat(document.getElementById('e-val').value);
   const notas=(document.getElementById('e-notas').value||'').trim();
@@ -1350,7 +1355,7 @@ async function addManual(){
   const metodo=document.getElementById('mMet').value;
   const cat=document.getElementById('mCat').value;
   const valor=parseFloat(document.getElementById('mVal').value);
-  const fuente=(document.getElementById('mFuente').value||'').trim().toUpperCase();
+  const fuente=normFuente(document.getElementById('mFuente').value);
   const notas=(document.getElementById('mNotas').value||'').trim();
   if(!mes||!desc||!valor){showToast('Completá todos los campos');return;}
   const btn=document.querySelector('#sec-cargar .btn-accent');
@@ -1472,7 +1477,7 @@ async function processZip(file){
   try{zip=await JSZip.loadAsync(zipData);}catch(e){res.innerHTML='<div class="ai-box" style="color:var(--red)">Error al leer el ZIP: '+e.message+'</div>';return;}
   const pdfs=Object.values(zip.files).filter(f=>!f.dir&&f.name.toLowerCase().endsWith('.pdf'));
   if(!pdfs.length){res.innerHTML='<div class="ai-box" style="color:var(--red)">No encontré PDFs en el ZIP</div>';return;}
-  const card=(document.getElementById('dz-card').value||file.name.replace(/\.zip$/i,'').replace(/_/g,' ')).toUpperCase();
+  const card=normFuente(document.getElementById('dz-card').value||file.name.replace(/\.zip$/i,'').replace(/_/g,' '));
   const T=tc();let imported=0,errors=0;const log=[];
   for(let i=0;i<pdfs.length;i++){
     const pf=pdfs[i];const fname=pf.name.split('/').pop();
@@ -1537,7 +1542,7 @@ async function handleFile(file){
   if(file.name.toLowerCase().endsWith('.zip')){processZip(file);return;}
   const res=document.getElementById('ai-res');
   const mes=document.getElementById('dz-mes').value||'';
-  const card=document.getElementById('dz-card').value||file.name;
+  const card=normFuente(document.getElementById('dz-card').value)||file.name;
   const anio=document.getElementById('dz-anio').value||'2025';
   res.innerHTML='<div class="ai-box"><div class="ai-spin"><div class="spinner"></div>Analizando con IA... puede tardar hasta 60 segundos</div></div>';
   try{
