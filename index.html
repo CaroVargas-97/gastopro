@@ -132,14 +132,20 @@ body.dark .login-card{background:var(--bg2)}
 .b-alu{background:#ecfdf5;color:#065f46}.b-flu{background:#e0f2fe;color:#0369a1}.b-slu{background:#fff1f2;color:#be123c}.b-sal{background:#faf5ff;color:#7e22ce}
 .b-ef{background:#f0fdf4;color:#15803d}.b-cr{background:#fff7ed;color:#c2410c}
 /* TABLE */
-.fsel{background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-size:12px;font-weight:500;padding:6px 10px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);outline:none}
-.fsearch{background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);font-family:var(--font);outline:none;width:200px}
-.tx-wrap{overflow:auto;max-height:520px}
+.tx-toolbar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fsel{background:var(--bg3);border:1px solid transparent;color:var(--text);font-size:12px;font-weight:500;padding:7px 11px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);outline:none;transition:border-color .12s}
+.fsel:hover{border-color:var(--border2)}
+.fsel:focus{border-color:var(--accent);background:var(--bg2)}
+.fsearch-wrap{position:relative}
+.fsearch-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);pointer-events:none}
+.fsearch{background:var(--bg3);border:1px solid transparent;color:var(--text);font-size:12px;padding:7px 12px 7px 32px;border-radius:var(--radius-sm);font-family:var(--font);outline:none;width:200px;transition:border-color .12s,background .12s}
+.fsearch:focus{border-color:var(--accent);background:var(--bg2);width:240px}
+.tx-wrap{overflow:auto;max-height:560px}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1}
-td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+th{text-align:left;padding:13px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1}
+td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafaf8}
+tr:hover td{background:var(--bg3)}
 .td-desc{color:var(--text);font-weight:600;font-size:13px}
 .td-mono{font-size:12px;font-weight:700;color:var(--text)}
 .td-mono-sm{font-size:11px;color:var(--text3)}
@@ -388,7 +394,7 @@ tr:hover .action-btns{opacity:1}
 
       <!-- TRANSACCIONES -->
       <div class="section" id="sec-transacciones">
-        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <div class="tx-toolbar">
           <select class="fsel" id="fMes" onchange="renderTx()"><option value="">Todos los meses</option></select>
           <select class="fsel" id="fCat" onchange="renderTx()">
             <option value="">Todas las categorías</option>
@@ -402,7 +408,7 @@ tr:hover .action-btns{opacity:1}
             <option value="">Todos los métodos</option><option>EFECTIVO</option><option>CREDITO</option>
           </select>
           <select class="fsel" id="fFuente" onchange="renderTx()"><option value="">Todas las fuentes</option></select>
-          <input class="fsearch" id="fText" placeholder="🔍 Buscar..." oninput="renderTx()">
+          <div class="fsearch-wrap"><i class="ti ti-search"></i><input class="fsearch" id="fText" placeholder="Buscar..." oninput="renderTx()"></div>
           <span id="tx-count" style="font-size:11px;font-weight:600;color:var(--text3);align-self:center"></span>
           <button class="btn" id="btn-duplicados" onclick="showDuplicatesModal()" style="display:none;gap:6px"><i class="ti ti-copy" style="font-size:13px"></i> <span id="dup-count-label">Duplicados</span></button>
           <button class="btn btn-danger" onclick="borrarFiltrados()" style="margin-left:auto" id="btn-borrar-filtrados"><i class="ti ti-trash" style="font-size:13px"></i> Borrar filtrados</button>
