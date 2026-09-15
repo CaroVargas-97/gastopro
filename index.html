@@ -1130,9 +1130,9 @@ function populateMesFilter(){
   const ff=document.getElementById('fFuente');
   const prev=ff.value;
   while(ff.options.length>1)ff.remove(1);
-  const fuentes=[...new Set(data.map(t=>t.fuente||'').filter(Boolean))].sort();
+  const fuentes=[...new Set(data.map(t=>t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'')).filter(Boolean))].sort();
   fuentes.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;ff.appendChild(o);});
-  if(data.some(t=>!t.fuente)){const o=document.createElement('option');o.value='__sin_fuente__';o.textContent='(sin fuente)';ff.appendChild(o);}
+  if(data.some(t=>!t.fuente&&t.metodo!=='EFECTIVO')){const o=document.createElement('option');o.value='__sin_fuente__';o.textContent='(sin fuente)';ff.appendChild(o);}
   if(fuentes.includes(prev)||prev==='__sin_fuente__')ff.value=prev;
   const dl=document.getElementById('fuente-datalist');
   if(dl)dl.innerHTML=fuentes.map(f=>'<option value="'+f+'">').join('');
@@ -1169,7 +1169,8 @@ function renderTx(){
   const txt=(document.getElementById('fText').value||'').toLowerCase();
   const filtered=[];
   data.forEach((t,i)=>{
-    const fuenteOk=!fuente||(fuente==='__sin_fuente__'?!t.fuente:t.fuente===fuente);
+    const tFuenteEfectiva=t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'');
+    const fuenteOk=!fuente||(fuente==='__sin_fuente__'?(!t.fuente&&t.metodo!=='EFECTIVO'):tFuenteEfectiva===fuente);
     const txtOk=!txt||(t.desc||'').toLowerCase().includes(txt)||(t.notas||'').toLowerCase().includes(txt)||(t.fuente||'').toLowerCase().includes(txt);
     if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fuenteOk&&txtOk)filtered.push(i);
   });
@@ -1405,7 +1406,7 @@ async function borrarFiltrados(){
   const met=document.getElementById('fMet').value;
   const fuente=document.getElementById('fFuente').value;
   const txt=(document.getElementById('fText').value||'').toLowerCase();
-  const toDelete=data.filter(t=>{const fOk=!fuente||(fuente==='__sin_fuente__'?!t.fuente:t.fuente===fuente);return(!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fOk&&(!txt||(t.desc||'').toLowerCase().includes(txt));});
+  const toDelete=data.filter(t=>{const tFE=t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'');const fOk=!fuente||(fuente==='__sin_fuente__'?(!t.fuente&&t.metodo!=='EFECTIVO'):tFE===fuente);return(!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fOk&&(!txt||(t.desc||'').toLowerCase().includes(txt));});
   if(!toDelete.length){showToast('No hay transacciones con ese filtro');return;}
   if(!confirm('¿Borrar '+toDelete.length+' transacciones filtradas? Esta acción no se puede deshacer.'))return;
   setSyncStatus('saving');
