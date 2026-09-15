@@ -449,9 +449,10 @@ tr:hover .action-btns{opacity:1}
 
       <!-- CARGAR -->
       <div class="section" id="sec-cargar">
-        <div class="g2">
-          <div class="card">
-            <div class="card-head"><span class="card-title">Carga automática con IA</span><span class="badge b-tar">INTELIGENTE</span></div>
+        <div class="dash-section-lbl" style="margin-top:6px"><i class="ti ti-upload" style="font-size:13px"></i> Importar</div>
+        <div class="widget-grid widget-grid-2" style="margin-bottom:32px">
+          <div class="w-card">
+            <div class="w-card-head"><span class="w-card-title">Carga automática con IA</span><span class="badge b-tar">INTELIGENTE</span></div>
             <div style="display:flex;flex-direction:column;gap:14px">
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
                 <div class="ff"><label class="flabel">Tarjeta / Servicio</label><input class="finput" id="dz-card" type="text" list="fuente-datalist" placeholder="AMEX, BBVA..."></div>
@@ -485,8 +486,8 @@ tr:hover .action-btns{opacity:1}
             </div>
             <div id="ai-res" style="margin-top:12px"></div>
           </div>
-          <div class="card">
-            <div class="card-head"><span class="card-title">Agregar gasto manual</span></div>
+          <div class="w-card">
+            <div class="w-card-head"><span class="w-card-title">Agregar gasto manual</span></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
               <div class="ff"><label class="flabel">Mes</label>
                 <select class="finput" id="mMes">
@@ -525,8 +526,9 @@ tr:hover .action-btns{opacity:1}
             </button>
           </div>
         </div>
-        <div class="card" style="margin-top:14px">
-          <div class="card-head"><span class="card-title">Lo que ya tenés cargado</span><button class="btn" style="font-size:11px;padding:4px 10px" onclick="renderCargaSummary()"><i class="ti ti-refresh"></i> Actualizar</button></div>
+        <div class="dash-section-lbl"><i class="ti ti-database" style="font-size:13px"></i> Resumen de datos cargados</div>
+        <div class="w-card" style="margin-bottom:0">
+          <div class="w-card-head"><span class="w-card-title">Lo que ya tenés cargado</span><button class="btn" style="font-size:11px;padding:4px 10px" onclick="renderCargaSummary()"><i class="ti ti-refresh"></i> Actualizar</button></div>
           <div id="carga-summary"><div style="color:var(--text3);font-size:13px">Cargando...</div></div>
         </div>
       </div>
@@ -1392,9 +1394,9 @@ function renderCargaSummary(){
       const tiene=g.meses.has(m);
       return '<span style="display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;'+(tiene?'background:var(--accent-light);color:var(--accent)':'background:var(--bg3);color:var(--text3);opacity:.5')+'" title="'+(tiene?g.count+' gastos en ':'')+m+'">'+MABR[i]+'</span>';
     }).join('');
-    return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
-        '<span style="font-size:13px;font-weight:600;color:var(--text);flex:1">'+f+'</span>'+
+    return '<div style="padding:13px 0;border-bottom:1px solid var(--border)">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+        '<span style="font-size:13px;font-weight:700;color:var(--text);flex:1">'+f+'</span>'+
         '<span style="font-size:11px;font-weight:700;color:var(--accent)">'+g.count+' gastos</span>'+
         '<button class="btn" style="font-size:11px;padding:3px 8px" onclick="document.getElementById(\'fFuente\').value=\''+(f==='(sin fuente)'?'__sin_fuente__':f)+'\';go(\'transacciones\')"><i class="ti ti-eye"></i> Ver</button>'+
       '</div>'+
