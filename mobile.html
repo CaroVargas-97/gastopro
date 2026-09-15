@@ -326,7 +326,7 @@ function renderTab(tab){
         try{
           const {data:rows}=await sb.from('transacciones')
             .select('id,descripcion,valor,mes,metodo,fuente,cat,notas,created_at')
-            .eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(500);
+            .order('created_at',{ascending:false}).limit(500);
           histVidaCache=rows||[];
           (rows||[]).forEach(r=>{editCache[r.id]=r;});
         }catch(e){}
@@ -515,7 +515,7 @@ async function loadHistVida(){
   try{
     const {data,error}=await sb.from('transacciones')
       .select('id,descripcion,valor,mes,metodo,fuente,cat,notas,created_at')
-      .eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(500);
+      .order('created_at',{ascending:false}).limit(500);
     if(error)throw error;
     histVidaCache=data||[];
     data.forEach(r=>{editCache[r.id]=r;});
@@ -554,7 +554,7 @@ async function loadCalModalMonth(){
   try{
     let q;
     const mesStr=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][month];
-    q=await sb.from('transacciones').select('id,descripcion,valor,mes,metodo,fuente,cat,notas,created_at').eq('user_id',currentUser.id).eq('mes',mesStr).order('created_at',{ascending:false});
+    q=await sb.from('transacciones').select('id,descripcion,valor,mes,metodo,fuente,cat,notas,created_at').eq('mes',mesStr).order('created_at',{ascending:false});
     if(q.error)throw q.error;
     calModal.records=q.data||[];
     q.data.forEach(r=>{editCache[r.id]=r;});
@@ -721,7 +721,7 @@ async function saveVida(){
   btn.disabled=true;btn.textContent='Verificando...';
   try{
     if(fuente&&val){
-      const {data:existing}=await sb.from('transacciones').select('descripcion').eq('user_id',currentUser.id).eq('mes',mes).eq('valor',val).eq('fuente',fuente).limit(1);
+      const {data:existing}=await sb.from('transacciones').select('descripcion').eq('mes',mes).eq('valor',val).eq('fuente',fuente).limit(1);
       if(existing&&existing.length>0){
         const dupDesc=existing[0].descripcion;
         const ok=confirm('⚠️ Ya existe un gasto de $'+val.toLocaleString('es-AR')+' en '+mes+' con '+fuente+':\n"'+dupDesc+'"\n\n¿Querés guardarlo igual?');

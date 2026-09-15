@@ -590,6 +590,11 @@ let editingIdx=null;
 let currentUser=null;
 let pendingParsed=null;
 
+async function authHeader(){
+  const {data:{session}}=await sb.auth.getSession();
+  return session?{'Authorization':'Bearer '+session.access_token}:{};
+}
+
 /* AUTH */
 async function init(){
   applyTheme();
@@ -653,8 +658,8 @@ function setSyncStatus(state){
 async function loadData(){
   try{
     const [txRes,histRes]=await Promise.all([
-      sb.from('transacciones').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:true}),
-      sb.from('historial').select('*').eq('user_id',currentUser.id).order('saved_at',{ascending:false})
+      sb.from('transacciones').select('*').order('created_at',{ascending:true}),
+      sb.from('historial').select('*').order('saved_at',{ascending:false})
     ]);
     data=(txRes.data||[]).map(r=>{const d=r.created_at?new Date(r.created_at):null;return{_id:r.id,id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',fecha:r.fecha||'',creadoEl:d?d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'',creadoTs:d?d.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):''};}).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
     historial=(histRes.data||[]).map(r=>({id:r.id,card:r.card,mes:r.mes,anio:r.anio,count:r.cantidad,total:parseFloat(r.total)||0,totalAbonado:parseFloat(r.total_abonado)||0,totalAbonadoUSD:parseFloat(r.total_abonado_usd)||0,savedAt:new Date(r.saved_at).toLocaleDateString('es-AR')}));
@@ -987,7 +992,7 @@ async function generarInsights(){
   const budgetLine=b>0?'\nPresupuesto mensual configurado: $'+Math.round(b/1000)+'k ARS':'';
   const prompt='Soy usuario argentino de una app de finanzas personales. Mis gastos:\n\n'+summary+budgetLine+'\nTC blue actual: $'+Math.round(T)+'/USD.\n\nDame exactamente 3 insights concretos y accionables sobre mis gastos. Cada uno en una línea nueva empezando con un emoji relevante. Sin títulos ni listas. Máximo 120 palabras.';
   try{
-    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:350,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json',...(await authHeader())},body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:350,messages:[{role:'user',content:prompt}]})});
     const d=await res.json();
     const text=(d.content&&d.content[0]&&d.content[0].text)||'Sin respuesta';
     box.innerHTML='<div class="insight-wrap">'+
@@ -1368,8 +1373,8 @@ async function borrarTodo(){
   if(!confirm('Segunda confirmación: se borrarán TODOS los datos permanentemente. ¿Seguro?'))return;
   setSyncStatus('saving');
   try{
-    await sb.from('transacciones').delete().eq('user_id',currentUser.id);
-    await sb.from('historial').delete().eq('user_id',currentUser.id);
+    await sb.from('transacciones').delete().not('id','is',null);
+    await sb.from('historial').delete().not('id','is',null);
     data=[];historial=[];
     document.getElementById('hist-badge').textContent='0';
     setSyncStatus('ok');updateSubtitle();renderTx();
@@ -1438,7 +1443,7 @@ async function processZip(file){
       const b64=await toB64(pdfFile);
       const titularNote='\n\nIMPORTANTE: Este resumen tiene múltiples titulares. Extraé ÚNICAMENTE los consumos del titular "'+titular.toUpperCase()+'". Ignorá completamente los consumos de cualquier otro titular o adicional. Detectá el mes y año del resumen desde el contenido del PDF.';
       const promptFull=PROMPT+titularNote+' Tarjeta o servicio: '+card+'.';
-      const hdrs={'Content-Type':'application/json'};
+      const hdrs={'Content-Type':'application/json',...(await authHeader())};
       const body={model:'claude-haiku-4-5',max_tokens:8000,beta:'pdfs-2024-09-25',messages:[{role:'user',content:[
         {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
         {type:'text',text:promptFull}
@@ -1492,7 +1497,7 @@ async function handleFile(file){
   try{
     const isPDF=file.type==='application/pdf';
     const isImg=file.type.startsWith('image/');
-    const hdrs={'Content-Type':'application/json'};
+    const hdrs={'Content-Type':'application/json',...(await authHeader())};
     let body;
     const titular=(document.getElementById('dz-titular').value||'').trim();
     const titularNote=titular?'\n\nIMPORTANTE: Este resumen tiene múltiples titulares (titular + adicionales). Extraé ÚNICAMENTE los consumos del titular "'+titular.toUpperCase()+'". Ignorá completamente todos los consumos de cualquier otro titular o adicional que aparezca en el resumen.':'';
