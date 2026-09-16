@@ -204,8 +204,9 @@ tr:hover .action-btns{opacity:1}
 .mes-name{font-size:10px;font-weight:700;color:var(--text3);text-transform:capitalize;letter-spacing:.05em;margin-bottom:6px}
 .mes-ars{font-size:15px;font-weight:700;color:var(--text)}
 /* HISTORIAL */
-.hist-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px}
-.hist-icon{width:36px;height:36px;border-radius:9px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hist-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:box-shadow .15s}
+.hist-item:hover{box-shadow:var(--shadow-md)}
+.hist-icon{width:40px;height:40px;border-radius:10px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hist-info{flex:1}
 .hist-title{font-size:13px;font-weight:600;color:var(--text)}
 .hist-meta{font-size:11px;color:var(--text3);margin-top:2px}
@@ -530,16 +531,17 @@ tr:hover .action-btns{opacity:1}
 
       <!-- HISTORIAL -->
       <div class="section" id="sec-historial">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">Resúmenes subidos</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Guardados automáticamente en la nube</div>
+        <div style="font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.3px;margin-bottom:4px">Resúmenes subidos</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:22px">Guardados automáticamente en la nube</div>
         <div id="hist-list"></div>
       </div>
 
       <!-- CONFIGURACION -->
       <div class="section" id="sec-config">
         <div style="max-width:480px">
-          <div class="card">
-            <div class="card-head"><span class="card-title">Cambiar contraseña</span></div>
+          <div class="dash-section-lbl" style="margin-top:6px"><i class="ti ti-shield-lock" style="font-size:13px"></i> Seguridad</div>
+          <div class="w-card" style="margin-bottom:28px">
+            <div class="w-card-head"><span class="dash-icon-badge" style="background:var(--accent-light);color:var(--accent);width:32px;height:32px;font-size:15px;margin-right:10px"><i class="ti ti-key"></i></span><span class="w-card-title" style="font-size:13px;text-transform:none;font-weight:700;color:var(--text)">Cambiar contraseña</span></div>
             <div class="ff"><label class="flabel">Contraseña actual</label>
               <input class="finput" type="password" id="cfg-pass-old" placeholder="••••••••">
             </div>
@@ -554,9 +556,11 @@ tr:hover .action-btns{opacity:1}
               <i class="ti ti-key"></i> Cambiar contraseña
             </button>
           </div>
-          <div class="card">
-            <div class="card-head"><span class="card-title">Presupuesto mensual</span></div>
-            <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Tope mensual en ARS para Gastos Vida. Vas a ver el progreso en cada mes del Análisis.</div>
+
+          <div class="dash-section-lbl"><i class="ti ti-adjustments" style="font-size:13px"></i> Preferencias</div>
+          <div class="w-card" style="margin-bottom:28px">
+            <div class="w-card-head"><span class="dash-icon-badge" style="background:var(--green-bg);color:var(--green);width:32px;height:32px;font-size:15px;margin-right:10px"><i class="ti ti-wallet"></i></span><span class="w-card-title" style="font-size:13px;text-transform:none;font-weight:700;color:var(--text)">Presupuesto mensual</span></div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Tope mensual en ARS para Gastos Vida. Vas a ver el progreso en cada mes del Análisis.</div>
             <div class="ff"><label class="flabel">Presupuesto en ARS</label>
               <input class="finput" type="number" id="cfg-budget" placeholder="Ej: 2000000">
             </div>
@@ -565,9 +569,13 @@ tr:hover .action-btns{opacity:1}
             </button>
             <div id="cfg-budget-msg" style="font-size:12px;margin-top:8px;color:var(--green);display:none">✓ Guardado</div>
           </div>
-          <div class="card">
-            <div class="card-head"><span class="card-title">Tu cuenta</span></div>
-            <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Email: <strong id="cfg-email" style="color:var(--text)"></strong></div>
+
+          <div class="dash-section-lbl"><i class="ti ti-user-circle" style="font-size:13px"></i> Cuenta</div>
+          <div class="w-card" style="margin-bottom:0">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+              <span class="dash-icon-badge" style="background:var(--bg3);color:var(--text2);width:38px;height:38px;font-size:17px"><i class="ti ti-user"></i></span>
+              <div style="font-size:13px;color:var(--text2)">Email<br><strong id="cfg-email" style="color:var(--text);font-size:14px">-</strong></div>
+            </div>
             <button class="btn btn-danger" style="padding:8px 16px" onclick="doLogout()">
               <i class="ti ti-logout"></i> Cerrar sesión
             </button>
@@ -1977,16 +1985,16 @@ function renderHistorialPage(){
   const c=document.getElementById('hist-list');
   if(!historial.length){c.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3)"><i class="ti ti-history" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i>Sin historial todavía</div>';return;}
   c.innerHTML=historial.map(function(h,i){
-    return '<div class="hist-item"><div class="hist-icon"><i class="ti ti-file-invoice" style="font-size:18px;color:var(--accent)"></i></div>'+
+    return '<div class="hist-item"><div class="hist-icon"><i class="ti ti-file-invoice" style="font-size:19px;color:var(--accent)"></i></div>'+
       '<div class="hist-info">'+
-        '<div class="hist-title">'+h.card+' — '+h.mes+' '+h.anio+'</div>'+
+        '<div class="hist-title" style="text-transform:capitalize">'+h.card+' — '+h.mes+' '+h.anio+'</div>'+
         '<div class="hist-meta">'+h.count+' transacciones · '+h.savedAt+'</div>'+
-        '<div style="display:flex;gap:12px;margin-top:5px">'+
-          '<span style="font-size:11px;color:var(--text3)">Consumos: <strong style="color:var(--text)">'+ars(h.total)+'</strong></span>'+
-          (h.totalAbonado>0?'<span style="font-size:11px;color:var(--text3)">Total a pagar: <strong style="color:var(--accent)">'+ars(h.totalAbonado)+'</strong>'+(h.totalAbonadoUSD>0?' · U$S '+Math.round(h.totalAbonadoUSD).toLocaleString('es-AR'):'' )+'</span>':'')+
+        '<div style="display:flex;gap:14px;margin-top:6px">'+
+          '<span style="font-size:11px;color:var(--text3)">Consumos: <strong style="color:var(--text);font-feature-settings:\'tnum\' 1">'+ars(h.total)+'</strong></span>'+
+          (h.totalAbonado>0?'<span style="font-size:11px;color:var(--text3)">Total a pagar: <strong style="color:var(--accent);font-feature-settings:\'tnum\' 1">'+ars(h.totalAbonado)+'</strong>'+(h.totalAbonadoUSD>0?' · U$S '+Math.round(h.totalAbonadoUSD).toLocaleString('es-AR'):'' )+'</span>':'')+
         '</div>'+
       '</div>'+
-      '<button class="btn btn-danger" style="margin-left:8px;padding:5px 10px;font-size:11px" data-i="'+i+'"><i class="ti ti-trash" style="font-size:12px"></i></button>'+
+      '<button class="btn btn-danger" style="margin-left:8px;padding:6px 11px;font-size:11px" data-i="'+i+'"><i class="ti ti-trash" style="font-size:12px"></i></button>'+
     '</div>';
   }).join('');
   c.querySelectorAll('button[data-i]').forEach(function(btn){btn.addEventListener('click',function(){removeHistorial(parseInt(this.dataset.i));});});
