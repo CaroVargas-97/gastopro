@@ -720,7 +720,7 @@ async function loadData(){
       sb.from('transacciones').select('*').order('created_at',{ascending:true}),
       sb.from('historial').select('*').order('saved_at',{ascending:false})
     ]);
-    data=(txRes.data||[]).map(r=>{const d=r.created_at?new Date(r.created_at):null;return{_id:r.id,id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',fecha:r.fecha||'',creadoEl:d?d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'',creadoTs:d?d.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):''};}).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+    data=(txRes.data||[]).map(r=>{const d=r.created_at?new Date(r.created_at):null;return{_id:r.id,id:r.id,mes:r.mes,desc:r.descripcion,metodo:r.metodo,valor:parseFloat(r.valor)||0,usd:parseFloat(r.usd)||0,cat:r.cat,fuente:(r.fuente||'').toUpperCase(),notas:r.notas||'',fecha:r.fecha||'',creadoEl:d?d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}):'',creadoTs:d?d.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'',creadoRaw:d?d.getTime():0};}).sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
     historial=(histRes.data||[]).map(r=>({id:r.id,card:r.card,mes:r.mes,anio:r.anio,count:r.cantidad,total:parseFloat(r.total)||0,totalAbonado:parseFloat(r.total_abonado)||0,totalAbonadoUSD:parseFloat(r.total_abonado_usd)||0,savedAt:new Date(r.saved_at).toLocaleDateString('es-AR'),pdfUrl:r.pdf_url||''}));
     document.getElementById('hist-badge').textContent=historial.length;
     setSyncStatus('ok');
@@ -1249,7 +1249,11 @@ function showDuplicatesModal(){
     '<div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">'+
       '<i class="ti ti-copy" style="font-size:20px;color:var(--accent)"></i>'+
       '<div><div style="font-size:16px;font-weight:700">Revisar duplicados</div>'+
-      '<div style="font-size:12px;color:var(--text3);margin-top:2px">Marcá los que querés eliminar. Por defecto se seleccionan todos menos el primero de cada grupo.</div></div>'+
+      '<div style="font-size:12px;color:var(--text3);margin-top:2px">Marcá los que querés eliminar. Por defecto se seleccionan todos menos el primero de cada grupo.</div>'+
+      '<div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--text2)">'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-right:5px"></span>Mismo archivo, cargado junto — probable doble import</span>'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:5px"></span>Misma fecha del banco, distinta fuente — puede ser cargo real duplicado</span>'+
+      '</div></div>'+
       '<button onclick="document.getElementById(\'dup-modal-bg\').remove()" style="margin-left:auto;background:none;border:none;font-size:20px;color:var(--text3);cursor:pointer;line-height:1">×</button>'+
     '</div>'+
     '<div style="overflow-y:auto;padding:20px 24px;flex:1">';
@@ -1257,14 +1261,22 @@ function showDuplicatesModal(){
     html+='<div style="margin-bottom:20px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">'+
       '<div style="background:var(--bg2);padding:8px 14px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Grupo '+(gi+1)+' · '+grp.length+' registros · '+ars(data[grp[0]].valor)+'</div>'+
       '<table style="width:100%;border-collapse:collapse">';
+    const keeper=data[grp[0]];
     grp.forEach((di,ri)=>{
       const t=data[di];
       const isKeeper=ri===0;
-      html+='<tr style="border-top:1px solid var(--border)'+(isKeeper?';background:var(--bg2)':'')+'">'  +
+      const mismoImport=!isKeeper&&t.fuente===keeper.fuente&&t.creadoRaw&&keeper.creadoRaw&&Math.abs(t.creadoRaw-keeper.creadoRaw)<5*60*1000;
+      const mismaFechaBanco=!isKeeper&&!mismoImport&&t.fecha&&keeper.fecha&&t.fecha===keeper.fecha&&t.fuente!==keeper.fuente;
+      const dotColor=mismoImport?'var(--amber)':mismaFechaBanco?'var(--red)':'var(--text3)';
+      const rowBg=mismoImport?'background:var(--amber-bg)':mismaFechaBanco?'background:var(--red-bg)':'';
+      html+='<tr style="border-top:1px solid var(--border);'+(isKeeper?'background:var(--bg2)':rowBg)+'">'  +
         '<td style="padding:10px 14px;width:32px"><input type="checkbox" class="dup-chk" data-di="'+di+'" '+(isKeeper?'':'checked')+' style="width:16px;height:16px;cursor:pointer"></td>'+
         '<td style="padding:10px 4px">'+
-          '<div style="font-size:13px;font-weight:600;color:var(--text)">'+t.desc+'</div>'+
-          (isKeeper?'<div style="font-size:10px;color:var(--green);font-weight:700;margin-top:2px">conservar</div>':'<div style="font-size:10px;color:var(--red,#dc2626);margin-top:2px">posible duplicado</div>')+
+          '<div style="display:flex;align-items:center;gap:6px">'+(isKeeper?'':'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0"></span>')+'<span style="font-size:13px;font-weight:600;color:var(--text)">'+t.desc+'</span></div>'+
+          (isKeeper?'<div style="font-size:10px;color:var(--green);font-weight:700;margin-top:2px">conservar</div>':
+            mismoImport?'<div style="font-size:10px;color:var(--amber);font-weight:700;margin-top:2px">mismo archivo — doble import</div>':
+            mismaFechaBanco?'<div style="font-size:10px;color:var(--red);font-weight:700;margin-top:2px">misma fecha, distinta fuente</div>':
+            '<div style="font-size:10px;color:var(--text3);font-weight:700;margin-top:2px">posible duplicado</div>')+
         '</td>'+
         '<td style="padding:10px 8px">'+
           '<div style="font-size:11px;color:var(--text3);text-transform:capitalize">'+t.mes+'</div>'+
