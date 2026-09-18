@@ -133,6 +133,9 @@ body.dark .login-card{background:var(--bg2)}
 .b-mun{background:#f0fdfa;color:#0f766e}.b-inv{background:#fef2f2;color:#dc2626}
 .b-alu{background:#ecfdf5;color:#065f46}.b-flu{background:#e0f2fe;color:#0369a1}.b-slu{background:#fff1f2;color:#be123c}.b-sal{background:#faf5ff;color:#7e22ce}
 .b-ef{background:#f0fdf4;color:#15803d}.b-cr{background:#fff7ed;color:#c2410c}
+.b-alq{background:#eff6ff;color:#1d4ed8}.b-arc{background:#f0f9ff;color:#0369a1}.b-srv{background:#f0fdfa;color:#0f766e}
+.b-sup{background:#f7fee7;color:#4d7c0f}.b-del{background:#fff7ed;color:#c2410c}
+.b-tot{background:#fefce8;color:#a16207}.b-mil{background:#fdf2f8;color:#be185d}
 /* TABLE */
 .tx-toolbar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .fsel{background:var(--bg3);border:1px solid transparent;color:var(--text);font-size:12px;font-weight:500;padding:7px 11px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);outline:none;transition:border-color .12s}
@@ -401,11 +404,14 @@ tr:hover .action-btns{opacity:1}
           <select class="fsel" id="fMes" onchange="renderTx()"><option value="">Todos los meses</option></select>
           <select class="fsel" id="fCat" onchange="renderTx()">
             <option value="">Todas las categorías</option>
-            <option>DEPARTAMENTO</option><option>TARJETAS</option><option>OTROS</option>
+            <option value="ALQUILER">ALQUILER</option><option value="ARREGLOS CASA">ARREGLOS CASA</option><option value="SERVICIOS">SERVICIOS</option>
+            <option>TARJETAS</option><option>OTROS</option>
             <option>AUTO</option><option>MOTO</option><option value="CAJA CHICA">CAJA CHICA</option>
             <option>VIAJES</option><option>TEAM</option><option>COMIDAS</option>
+            <option value="SUPERMERCADO">SUPERMERCADO</option><option value="DELIVERY">DELIVERY</option>
             <option>SUSCRIPCIONES</option><option>MUN</option><option>INVERSIONES</option>
             <option>AMEX LUIS</option><option>FRANCES LUIS</option><option>SANTANDER LUIS</option><option>SALUD</option>
+            <option>TOTA</option><option>MILO</option>
           </select>
           <select class="fsel" id="fMet" onchange="renderTx()">
             <option value="">Todos los métodos</option><option>EFECTIVO</option><option>CREDITO</option>
@@ -506,14 +512,17 @@ tr:hover .action-btns{opacity:1}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
               <div class="ff"><label class="flabel">Categoría</label>
                 <select class="finput" id="mCat">
-                  <option value="DEPARTAMENTO">Departamento</option><option value="TARJETAS">Tarjetas</option>
+                  <option value="ALQUILER">Alquiler</option><option value="ARREGLOS CASA">Arreglos de la casa</option>
+                  <option value="SERVICIOS">Servicios (luz/gas/agua/internet)</option><option value="TARJETAS">Tarjetas</option>
                   <option value="OTROS">Otros</option><option value="AUTO">Auto</option>
                   <option value="MOTO">Moto</option><option value="CAJA CHICA">Caja chica</option>
                   <option value="VIAJES">Viajes</option><option value="TEAM">Gastos del team</option>
-                  <option value="COMIDAS">Comidas / delivery</option><option value="SUSCRIPCIONES">Suscripciones</option>
+                  <option value="COMIDAS">Comidas afuera</option><option value="SUPERMERCADO">Supermercado</option>
+                  <option value="DELIVERY">Delivery</option><option value="SUSCRIPCIONES">Suscripciones</option>
                   <option value="MUN">MUN</option><option value="INVERSIONES">Inversiones</option>
                   <option value="AMEX LUIS">Amex Luis</option><option value="FRANCES LUIS">Francés Luis</option>
                   <option value="SANTANDER LUIS">Santander Luis</option><option value="SALUD">Salud</option>
+                  <option value="TOTA">Tota (mascota)</option><option value="MILO">Milo (hijo)</option>
                 </select>
               </div>
               <div class="ff"><label class="flabel">Valor ARS</label><input class="finput" id="mVal" type="number" placeholder="0"></div>
@@ -600,10 +609,10 @@ const SUPA_KEY='sb_publishable_0XEjYVJ8j5Dlqa6SERapvA_VgOMLzWF';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const CATCOL={'DEPARTAMENTO':'#3b82f6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','MOTO':'#ef4444','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','TEAM':'#0891b2','COMIDAS':'#f97316','SUSCRIPCIONES':'#8b5cf6','MUN':'#0d9488','INVERSIONES':'#dc2626','AMEX LUIS':'#10b981','FRANCES LUIS':'#0ea5e9','SANTANDER LUIS':'#f43f5e','SALUD':'#a855f7'};
-const CATBADGE={'DEPARTAMENTO':'b-dep','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','MOTO':'b-mot','CAJA CHICA':'b-caj','VIAJES':'b-via','TEAM':'b-team','COMIDAS':'b-com','SUSCRIPCIONES':'b-sus','MUN':'b-mun','INVERSIONES':'b-inv','AMEX LUIS':'b-alu','FRANCES LUIS':'b-flu','SANTANDER LUIS':'b-slu','SALUD':'b-sal'};
-const CATLAB={'DEPARTAMENTO':'Departamento','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas / delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones','AMEX LUIS':'Amex Luis','FRANCES LUIS':'Francés Luis','SANTANDER LUIS':'Santander Luis','SALUD':'Salud'};
-const CATS=['DEPARTAMENTO','TARJETAS','OTROS','AUTO','MOTO','CAJA CHICA','VIAJES','TEAM','COMIDAS','SUSCRIPCIONES','MUN','INVERSIONES','AMEX LUIS','FRANCES LUIS','SANTANDER LUIS','SALUD'];
+const CATCOL={'ALQUILER':'#3b82f6','ARREGLOS CASA':'#0284c7','SERVICIOS':'#14b8a6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','MOTO':'#ef4444','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','TEAM':'#0891b2','COMIDAS':'#f97316','SUPERMERCADO':'#65a30d','DELIVERY':'#fb923c','SUSCRIPCIONES':'#8b5cf6','MUN':'#0d9488','INVERSIONES':'#dc2626','AMEX LUIS':'#10b981','FRANCES LUIS':'#0ea5e9','SANTANDER LUIS':'#f43f5e','SALUD':'#a855f7','TOTA':'#eab308','MILO':'#f472b6'};
+const CATBADGE={'ALQUILER':'b-alq','ARREGLOS CASA':'b-arc','SERVICIOS':'b-srv','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','MOTO':'b-mot','CAJA CHICA':'b-caj','VIAJES':'b-via','TEAM':'b-team','COMIDAS':'b-com','SUPERMERCADO':'b-sup','DELIVERY':'b-del','SUSCRIPCIONES':'b-sus','MUN':'b-mun','INVERSIONES':'b-inv','AMEX LUIS':'b-alu','FRANCES LUIS':'b-flu','SANTANDER LUIS':'b-slu','SALUD':'b-sal','TOTA':'b-tot','MILO':'b-mil'};
+const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','MOTO':'Moto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','TEAM':'Gastos del team','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','MUN':'MUN','INVERSIONES':'Inversiones','AMEX LUIS':'Amex Luis','FRANCES LUIS':'Francés Luis','SANTANDER LUIS':'Santander Luis','SALUD':'Salud','TOTA':'Tota (mascota)','MILO':'Milo (hijo)'};
+const CATS=['ALQUILER','ARREGLOS CASA','SERVICIOS','TARJETAS','OTROS','AUTO','MOTO','CAJA CHICA','VIAJES','TEAM','COMIDAS','SUPERMERCADO','DELIVERY','SUSCRIPCIONES','MUN','INVERSIONES','AMEX LUIS','FRANCES LUIS','SANTANDER LUIS','SALUD','TOTA','MILO'];
 const PAGES={overview:'Dashboard',analisis:'Análisis',transacciones:'Transacciones',inversiones:'Inversiones',cargar:'Cargar datos',historial:'Historial',config:'Configuración'};
 const NAV_IDS=['overview','analisis','transacciones','inversiones','cargar','historial','config'];
 
@@ -612,7 +621,7 @@ const PROMPT=`Sos un extractor de gastos financieros en Argentina. Analizá el r
 1. "total_ars": el monto TOTAL A PAGAR en pesos argentinos. En AMEX: la primera página muestra una fila con 3 números (Saldo Anterior / Créditos / Débitos) y el "Saldo a pagar $" aparece APARTE en un recuadro destacado o junto a "Próximo Vencimiento" — ese es el correcto, NO el tercer número de la fila. También puede aparecer como "2.360.645,99" junto a "07/09/26". En BBVA es "Saldo Actual $". NUNCA uses el valor de "Débitos $" ni "Saldo Anterior $".
 2. "total_usd": el monto total a pagar en dólares. En AMEX es "Saldo a pagar U$S". Si es 0,00 poner 0.
 3. "transacciones": array con TODOS los gastos individuales, cada uno con:
-{"mes":"enero|febrero|...|diciembre","fecha":"DD/MM","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"DEPARTAMENTO|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA|VIAJES|TEAM|COMIDAS|SUSCRIPCIONES|MUN|INVERSIONES|AMEX LUIS|FRANCES LUIS|SANTANDER LUIS|SALUD"}
+{"mes":"enero|febrero|...|diciembre","fecha":"DD/MM","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"ALQUILER|ARREGLOS CASA|SERVICIOS|TARJETAS|AUTO|MOTO|OTROS|CAJA CHICA|VIAJES|TEAM|COMIDAS|SUPERMERCADO|DELIVERY|SUSCRIPCIONES|MUN|INVERSIONES|AMEX LUIS|FRANCES LUIS|SANTANDER LUIS|SALUD|TOTA|MILO"}
 
 El campo "mes" debe ser detectado del propio contenido del resumen. Los resúmenes bancarios suelen corresponder al mes ANTERIOR al mes en que se reciben — si el resumen dice "período julio 2026" o las fechas de las transacciones son de julio, usá "julio". No asumas el mes actual.
 El campo "fecha" es la fecha de la transacción tal como figura en el resumen (ej: "05/08"). Si no aparece fecha, dejarlo como "".
@@ -624,7 +633,7 @@ REGLA DE MONEDAS:
 
 IGNORAR SOLO: "GRACIAS POR SU PAGO", "PAGO RECIBIDO", "SU PAGO EN PESOS", "SU PAGO EN USD", "SALDO ANTERIOR" — es decir, solo los pagos ya realizados. NO ignorar intereses, comisiones, IVA, recargos ni ningún otro cargo porque son parte del gasto real.
 
-CATEGORIAS: supermercado/alquiler/expensas/luz/gas/agua/internet→DEPARTAMENTO; nafta/combustible/peaje/seguro auto/taller/mecánico/repuestos→AUTO; seguro moto/taller moto→MOTO; pagos resumen tarjeta de crédito→TARJETAS; restaurante/delivery/comida/cafe/fast food→COMIDAS; Apple/Spotify/Netflix/Disney/suscripciones digitales→SUSCRIPCIONES; viajes/hotel/avion/turismo/duty free/mall extranjero/cabify/uber/taxi/remis/transfer→VIAJES; ABL/municipalidad/patentes/tasas→MUN; gastos equipo/personal/eventos/regalos trabajo→TEAM; resto→OTROS
+CATEGORIAS: alquiler/expensas→ALQUILER; plomero/electricista/pintura/mantenimiento del hogar/ferretería para arreglos→ARREGLOS CASA; luz/gas/agua/internet/telefono/cable→SERVICIOS; supermercado/almacén/verdulería→SUPERMERCADO; rappi/pedidosya/delivery de comida→DELIVERY; restaurante/bar/cafetería/comida en el lugar/fast food→COMIDAS; nafta/combustible/peaje/seguro auto/taller/mecánico/repuestos→AUTO; seguro moto/taller moto→MOTO; pagos resumen tarjeta de crédito→TARJETAS; Apple/Spotify/Netflix/Disney/suscripciones digitales→SUSCRIPCIONES; viajes/hotel/avion/turismo/duty free/mall extranjero/cabify/uber/taxi/remis/transfer→VIAJES; ABL/municipalidad/patentes/tasas→MUN; gastos equipo/personal/eventos/regalos trabajo→TEAM; veterinaria/petshop/comida de mascota→TOTA (es la mascota); colegio/jardín/pediatra/jugueteria/ropa de niño→MILO (es el hijo); resto→OTROS. Si un gasto podría ser de Tota o Milo pero no hay certeza por el nombre del comercio, usar OTROS en vez de adivinar mal.
 
 Respondé ÚNICAMENTE con el objeto JSON, sin markdown, sin backticks, sin texto adicional.`;
 
@@ -1100,7 +1109,7 @@ function renderAnalisis(){
       '</div>';
     }).join('');
   }catch(e){console.warn('cDonut chart error:',e);}
-  const cats3=['DEPARTAMENTO','TARJETAS','COMIDAS'];
+  const cats3=['ALQUILER','TARJETAS','SUPERMERCADO'];
   try{
     if(charts.cat)charts.cat.destroy();
     charts.cat=new Chart(document.getElementById('cCat').getContext('2d'),{type:'line',data:{labels:mes.map(m=>m.slice(0,3)),datasets:cats3.map(c=>({label:CATLAB[c],data:mes.map(m=>Math.round(data.filter(t=>t.mes===m&&t.cat===c).reduce((s,t)=>s+t.valor,0))),borderColor:CATCOL[c],backgroundColor:'transparent',tension:.35,pointRadius:3,pointHoverRadius:5,pointBackgroundColor:CATCOL[c],borderWidth:2.5}))},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{labels:{color:cc.text2,font:{size:11,weight:600},boxWidth:8,boxHeight:8,usePointStyle:true,padding:16}}},scales:{y:{grid:{color:cc.grid},ticks:{color:cc.text3,font:{size:10},callback:v=>'$'+(v/1000000).toFixed(1)+'M'}},x:{grid:{display:false},ticks:{color:cc.text3,font:{size:10,weight:600}}}}}})
