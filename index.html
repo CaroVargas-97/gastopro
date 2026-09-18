@@ -1135,6 +1135,12 @@ function goToMes(mes){
   renderTx();
 }
 
+function goToCatMes(cat,mes){
+  document.getElementById('fCat').value=cat;
+  document.getElementById('fMes').value=mes;
+  renderTx();
+}
+
 /* TRANSACCIONES */
 function normFuente(s){return(s||'').trim().replace(/\s+/g,' ').toUpperCase();}
 
@@ -1156,29 +1162,30 @@ function populateMesFilter(){
 function renderTx(){
   const T=tc();
   const mes=document.getElementById('fMes').value;
+  const cat=document.getElementById('fCat').value;
   const summaryEl=document.getElementById('tx-mes-summary');
   if(summaryEl){
-    if(mes){
-      const mesTxs=data.filter(t=>t.mes===mes);
-      const totARS=mesTxs.reduce((s,t)=>s+t.valor,0);
-      const totUSD=mesTxs.reduce((s,t)=>s+(t.usd>0?t.usd:t.valor/T),0);
-      const efARS=mesTxs.filter(t=>t.metodo==='EFECTIVO').reduce((s,t)=>s+t.valor,0);
-      const crARS=mesTxs.filter(t=>t.metodo==='CREDITO').reduce((s,t)=>s+t.valor,0);
+    if(mes||cat){
+      const scopeTxs=data.filter(t=>(!mes||t.mes===mes)&&(!cat||t.cat===cat));
+      const totARS=scopeTxs.reduce((s,t)=>s+t.valor,0);
+      const totUSD=scopeTxs.reduce((s,t)=>s+(t.usd>0?t.usd:t.valor/T),0);
+      const efARS=scopeTxs.filter(t=>t.metodo==='EFECTIVO').reduce((s,t)=>s+t.valor,0);
+      const crARS=scopeTxs.filter(t=>t.metodo==='CREDITO').reduce((s,t)=>s+t.valor,0);
       const efPct=totARS>0?Math.round(efARS/totARS*100):0;
+      const label=(cat?(CATLAB[cat]||cat):'')+(cat&&mes?' · ':'')+(mes?mes:(cat?'todos los meses':''));
       summaryEl.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-lg);padding:14px 18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">'+
-        '<div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:capitalize;min-width:60px">'+mes+'</div>'+
+        '<div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:capitalize;min-width:60px">'+label+'</div>'+
         '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Total ARS</div><div style="font-size:16px;font-weight:700">'+ars(totARS)+'</div></div>'+
         '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Equiv. USD</div><div style="font-size:16px;font-weight:700;color:var(--green)">'+usdFmt(totUSD)+'</div></div>'+
         '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Efectivo</div><div style="font-size:14px;font-weight:700">'+efPct+'% <span style="font-size:11px;font-weight:400;color:var(--text3)">'+ars(efARS)+'</span></div></div>'+
         '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Crédito</div><div style="font-size:14px;font-weight:700">'+(100-efPct)+'% <span style="font-size:11px;font-weight:400;color:var(--text3)">'+ars(crARS)+'</span></div></div>'+
-        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Transacciones</div><div style="font-size:14px;font-weight:700">'+mesTxs.length+'</div></div>'+
-        '<button class="btn" style="margin-left:auto;font-size:11px" onclick="document.getElementById(\'fMes\').value=\'\';renderTx()"><i class="ti ti-x"></i> Limpiar filtro</button>'+
+        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Transacciones</div><div style="font-size:14px;font-weight:700">'+scopeTxs.length+'</div></div>'+
+        '<button class="btn" style="margin-left:auto;font-size:11px" onclick="document.getElementById(\'fMes\').value=\'\';document.getElementById(\'fCat\').value=\'\';renderTx()"><i class="ti ti-x"></i> Limpiar filtro</button>'+
       '</div>';
     }else{
       summaryEl.innerHTML='';
     }
   }
-  const cat=document.getElementById('fCat').value;
   const met=document.getElementById('fMet').value;
   const fuente=document.getElementById('fFuente').value;
   const txt=(document.getElementById('fText').value||'').toLowerCase();
@@ -1198,7 +1205,7 @@ function renderTx(){
       '<td style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
       '<td class="td-desc">'+t.desc+(t.notas?'<div style="font-size:10px;color:var(--text3);font-style:italic;margin-top:2px">'+t.notas+'</div>':'')+
       '</td>'+
-      '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
+      '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'" style="cursor:pointer" onclick="goToCatMes(\''+t.cat+'\',\''+t.mes+'\')" title="Ver total de esta categoría en '+t.mes+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
       '<td style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
       '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':t.metodo==='TRANSFERENCIA'?'b-tr':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':t.metodo==='TRANSFERENCIA'?'Transferencia':'Crédito')+'</span></td>'+
       '<td style="font-size:10px;color:var(--text3);white-space:nowrap">'+(t.fecha||'')+'</td>'+
