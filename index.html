@@ -519,7 +519,7 @@ tr:hover .action-btns{opacity:1}
                   <option value="COMIDAS">Comidas afuera</option><option value="SUPERMERCADO">Supermercado</option>
                   <option value="DELIVERY">Delivery</option><option value="SUSCRIPCIONES">Suscripciones</option>
                   <option value="INVERSIONES">Inversiones</option><option value="SALUD">Salud</option>
-                  <option value="TOTA">Tota (mascota)</option><option value="MILO">Milo (hijo)</option>
+                  <option value="TOTA">Tota</option><option value="MILO">Milo</option>
                 </select>
               </div>
               <div class="ff"><label class="flabel">Valor ARS</label><input class="finput" id="mVal" type="number" placeholder="0"></div>
@@ -608,7 +608,7 @@ const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const CATCOL={'ALQUILER':'#3b82f6','ARREGLOS CASA':'#0284c7','SERVICIOS':'#14b8a6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','COMIDAS':'#f97316','SUPERMERCADO':'#65a30d','DELIVERY':'#fb923c','SUSCRIPCIONES':'#8b5cf6','INVERSIONES':'#dc2626','SALUD':'#a855f7','TOTA':'#eab308','MILO':'#f472b6'};
 const CATBADGE={'ALQUILER':'b-alq','ARREGLOS CASA':'b-arc','SERVICIOS':'b-srv','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','CAJA CHICA':'b-caj','VIAJES':'b-via','COMIDAS':'b-com','SUPERMERCADO':'b-sup','DELIVERY':'b-del','SUSCRIPCIONES':'b-sus','INVERSIONES':'b-inv','SALUD':'b-sal','TOTA':'b-tot','MILO':'b-mil'};
-const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','INVERSIONES':'Inversiones','SALUD':'Salud','TOTA':'Tota (mascota)','MILO':'Milo (hijo)'};
+const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','INVERSIONES':'Inversiones','SALUD':'Salud','TOTA':'Tota','MILO':'Milo'};
 const CATS=['ALQUILER','ARREGLOS CASA','SERVICIOS','TARJETAS','OTROS','AUTO','CAJA CHICA','VIAJES','COMIDAS','SUPERMERCADO','DELIVERY','SUSCRIPCIONES','INVERSIONES','SALUD','TOTA','MILO'];
 const PAGES={overview:'Dashboard',analisis:'Análisis',transacciones:'Transacciones',inversiones:'Inversiones',cargar:'Cargar datos',historial:'Historial',config:'Configuración'};
 const NAV_IDS=['overview','analisis','transacciones','inversiones','cargar','historial','config'];
