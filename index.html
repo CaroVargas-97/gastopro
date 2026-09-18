@@ -132,7 +132,7 @@ body.dark .login-card{background:var(--bg2)}
 .b-com{background:#fff7ed;color:#c2410c}.b-sus{background:#f5f3ff;color:#7c3aed}
 .b-mun{background:#f0fdfa;color:#0f766e}.b-inv{background:#fef2f2;color:#dc2626}
 .b-alu{background:#ecfdf5;color:#065f46}.b-flu{background:#e0f2fe;color:#0369a1}.b-slu{background:#fff1f2;color:#be123c}.b-sal{background:#faf5ff;color:#7e22ce}
-.b-ef{background:#f0fdf4;color:#15803d}.b-cr{background:#fff7ed;color:#c2410c}
+.b-ef{background:#f0fdf4;color:#15803d}.b-cr{background:#fff7ed;color:#c2410c}.b-tr{background:#eff6ff;color:#1d4ed8}
 .b-alq{background:#eff6ff;color:#1d4ed8}.b-arc{background:#f0f9ff;color:#0369a1}.b-srv{background:#f0fdfa;color:#0f766e}
 .b-sup{background:#f7fee7;color:#4d7c0f}.b-del{background:#fff7ed;color:#c2410c}
 .b-tot{background:#fefce8;color:#a16207}.b-mil{background:#fdf2f8;color:#be185d}
@@ -413,7 +413,7 @@ tr:hover .action-btns{opacity:1}
             <option>TOTA</option><option>MILO</option>
           </select>
           <select class="fsel" id="fMet" onchange="renderTx()">
-            <option value="">Todos los métodos</option><option>EFECTIVO</option><option>CREDITO</option>
+            <option value="">Todos los métodos</option><option>EFECTIVO</option><option>CREDITO</option><option>TRANSFERENCIA</option>
           </select>
           <select class="fsel" id="fFuente" onchange="renderTx()"><option value="">Todas las fuentes</option></select>
           <div class="fsearch-wrap"><i class="ti ti-search"></i><input class="fsearch" id="fText" placeholder="Buscar..." oninput="renderTx()"></div>
@@ -504,7 +504,7 @@ tr:hover .action-btns{opacity:1}
                 </select>
               </div>
               <div class="ff"><label class="flabel">Método</label>
-                <select class="finput" id="mMet"><option value="EFECTIVO">Efectivo</option><option value="CREDITO">Crédito</option></select>
+                <select class="finput" id="mMet"><option value="EFECTIVO">Efectivo</option><option value="CREDITO">Crédito</option><option value="TRANSFERENCIA">Transferencia</option></select>
               </div>
             </div>
             <div class="ff"><label class="flabel">Descripción</label><input class="finput" id="mDesc" type="text" placeholder="Ej: GAS, SUPERMERCADO..."></div>
@@ -1200,7 +1200,7 @@ function renderTx(){
       '</td>'+
       '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
       '<td style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
-      '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':'Crédito')+'</span></td>'+
+      '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':t.metodo==='TRANSFERENCIA'?'b-tr':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':t.metodo==='TRANSFERENCIA'?'Transferencia':'Crédito')+'</span></td>'+
       '<td style="font-size:10px;color:var(--text3);white-space:nowrap">'+(t.fecha||'')+'</td>'+
       '<td style="text-align:right"><div class="td-mono">'+ars(t.valor)+'</div></td>'+
       '<td style="text-align:right"><div class="td-mono-sm">'+(usdVal>0?usdFmt(usdVal):'')+'</div></td>'+
@@ -1331,7 +1331,7 @@ function startEdit(di){
     '<td><input class="edit-inp" id="e-desc" value="'+t.desc+'" style="min-width:140px"><input class="edit-inp" id="e-notas" value="'+(t.notas||'')+'" placeholder="Notas..." style="min-width:140px;margin-top:3px;font-size:11px"></td>'+
     '<td><select class="edit-sel" id="e-cat">'+catopts+'</select></td>'+
     '<td><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" list="fuente-datalist" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
-    '<td><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option></select></td>'+
+    '<td><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="TRANSFERENCIA" '+(t.metodo==='TRANSFERENCIA'?'selected':'')+'>Transferencia</option></select></td>'+
     '<td style="text-align:right"><input class="edit-inp" id="e-val" value="'+t.valor+'" type="number" style="width:100px;text-align:right"></td>'+
     '<td style="text-align:right;font-size:11px;color:var(--text3)">'+usdFmt(t.valor/T)+'</td>'+
     '<td><div style="display:flex;gap:4px">'+

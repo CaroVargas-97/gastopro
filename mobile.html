@@ -252,7 +252,7 @@ const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const CATS_VIDA=['ALQUILER','ARREGLOS CASA','SERVICIOS','TARJETAS','COMIDAS','SUPERMERCADO','DELIVERY','AUTO','VIAJES','SUSCRIPCIONES','CAJA CHICA','INVERSIONES','OTROS','SALUD','TOTA','MILO'];
-const FUENTES=['AMEX','FRANCES','SANTANDER','BBVA','OTRA'];
+const FUENTES=['AMEX','FRANCES','SANTANDER','BBVA','EFECTIVO','OTRA'];
 const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','INVERSIONES':'Inversiones','SALUD':'Salud','TOTA':'Tota (mascota)','MILO':'Milo (hijo)'};
 
 let currentUser=null;
@@ -431,7 +431,7 @@ function openEdit(section,id){
         '<div class="ff"><label class="flabel">Monto ARS</label><input class="minput" type="number" id="em-val" value="'+(r.valor||0)+'"></div>'+
       '</div>'+
       '<div class="row2" style="margin-bottom:12px">'+
-        '<div class="ff"><label class="flabel">Método</label><select class="minput" id="em-met"><option value="CREDITO" '+(r.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="EFECTIVO" '+(r.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option></select></div>'+
+        '<div class="ff"><label class="flabel">Método</label><select class="minput" id="em-met"><option value="CREDITO" '+(r.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="EFECTIVO" '+(r.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="TRANSFERENCIA" '+(r.metodo==='TRANSFERENCIA'?'selected':'')+'>Transferencia</option></select></div>'+
         '<div class="ff"><label class="flabel">Fuente</label><select class="minput" id="em-fuente"><option value="">— sin fuente —</option>'+FUENTES.map(f=>'<option value="'+f+'" '+(r.fuente===f?'selected':'')+'>'+f+'</option>').join('')+'</select></div>'+
       '</div>'+
       '<div class="row2" style="margin-bottom:12px">'+
@@ -490,7 +490,7 @@ function renderHistItems(list){
   const visible=list.slice(0,3);
   const rest=list.length-3;
   box.innerHTML=visible.map(r=>{
-    const metIcon=r.metodo==='EFECTIVO'?'💵':'💳';
+    const metIcon=r.metodo==='EFECTIVO'?'💵':r.metodo==='TRANSFERENCIA'?'🏦':'💳';
     const d=r.created_at?new Date(r.created_at):null;
     const fechaStr=d?d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'';
     const sub=(fechaStr?fechaStr+' · ':'')+[r.fuente,r.notas].filter(Boolean).join(' · ');
@@ -627,7 +627,7 @@ function calEntryItem(r){
   const isVida=calModal.section==='vida';
   const amt=isVida?arsF(r.valor):arsF(r.valor_ars);
   const sub=isVida?(r.fuente||r.metodo||''):(r.creado_por||'');
-  const icon=isVida?(r.metodo==='EFECTIVO'?'💵':'💳'):'👥';
+  const icon=isVida?(r.metodo==='EFECTIVO'?'💵':r.metodo==='TRANSFERENCIA'?'🏦':'💳'):'👥';
   return'<div class="cal-entry-item">'+
     '<div>'+
       '<div class="cal-entry-desc">'+icon+' '+(r.descripcion||'–')+'</div>'+
@@ -694,7 +694,7 @@ function formVida(){
       '</div>'+
       '<div class="row2" style="margin-bottom:14px">'+
         '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="v-mes">'+mesOpts(mes)+'</select></div>'+
-        '<div class="ff"><label class="flabel">Método</label><select class="minput" id="v-met"><option value="CREDITO">Crédito</option><option value="EFECTIVO">Efectivo</option></select></div>'+
+        '<div class="ff"><label class="flabel">Método</label><select class="minput" id="v-met"><option value="CREDITO">Crédito</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option></select></div>'+
       '</div>'+
       '<div class="row2" style="margin-bottom:14px">'+
         '<div class="ff"><label class="flabel">Categoría</label><select class="minput" id="v-cat">'+catOpts(CATS_VIDA,'OTROS')+'</select></div>'+
@@ -714,7 +714,7 @@ async function saveVida(){
   const desc=document.getElementById('v-desc').value.trim();
   const val=parseFloat(document.getElementById('v-val').value);
   const met=document.getElementById('v-met').value;
-  const fuente=met==='EFECTIVO'?'':document.getElementById('v-fuente').value;
+  const fuente=document.getElementById('v-fuente').value;
   const notas=document.getElementById('v-notas').value.trim();
   if(!desc||!val){showToast('Completá descripción y monto');return;}
   const btn=document.querySelector('.btn-save');
