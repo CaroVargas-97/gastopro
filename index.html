@@ -50,7 +50,7 @@ body.dark .login-card{background:var(--bg2)}
 /* APP */
 .app{min-height:100vh;display:none}
 .sidebar{width:236px;flex-shrink:0;background:linear-gradient(180deg,var(--sidebar-bg),var(--sidebar-bg2));border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column}
-.main{flex:1;overflow:auto;background:var(--bg)}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
 .logo-area{padding:20px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(79,63,245,.5)}
@@ -1054,7 +1054,7 @@ function renderComparativa(){
         '<div style="font-size:22px;font-weight:800;letter-spacing:-.4px">'+ars(v2)+'</div>'+
       '</div>'+
     '</div>'+
-    '<table style="width:100%;border-collapse:collapse">'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:340px">'+
       '<thead><tr>'+
         '<th style="text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding-bottom:8px">Categoría</th>'+
         '<th style="text-align:right;font-size:10px;font-weight:700;color:var(--text3);text-transform:capitalize;padding-bottom:8px">'+m1+'</th>'+
@@ -1062,7 +1062,7 @@ function renderComparativa(){
         '<th style="text-align:right;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding-bottom:8px">Δ</th>'+
       '</tr></thead>'+
       '<tbody>'+rows+'</tbody>'+
-    '</table>';
+    '</table></div>';
 }
 
 
