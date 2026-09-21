@@ -274,10 +274,22 @@ tr:hover .action-btns{opacity:1}
   .page-title{font-size:15px}
   .mes-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
   .hero-card{flex-direction:column;align-items:flex-start;gap:10px}
+  .dash-head{flex-wrap:wrap;row-gap:8px}
   .vida-stats{grid-template-columns:1fr 1fr;row-gap:12px}
   .vida-stat{border-right:none!important;padding:0!important}
   table{font-size:11px}
   th,td{padding:9px 10px!important}
+
+  /* tablas Transacciones/Inversiones como tarjetas apiladas */
+  #tx-body table,#inv-body table{border:none}
+  #tx-body thead,#inv-body thead{display:none}
+  #tx-body tr,#inv-body tr{display:block;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+  #tx-body td,#inv-body td{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0!important;border-bottom:1px solid var(--bg3);text-align:right!important;font-size:12px}
+  #tx-body td:last-child,#inv-body td:last-child{border-bottom:none;justify-content:flex-end}
+  #tx-body td::before,#inv-body td::before{content:attr(data-label);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;text-align:left;flex-shrink:0}
+  #tx-body td[data-label=""]::before,#inv-body td[data-label=""]::before{content:none}
+  #tx-body td.td-desc,#inv-body td.td-desc{flex-direction:column;align-items:flex-start;text-align:left!important}
+  #tx-body .action-btns,#inv-body .action-btns{opacity:1}
 }
 @media (max-width:520px){
   .work-grid{grid-template-columns:1fr}
@@ -935,7 +947,7 @@ function renderOverview(){
       ?'<div class="vida-card">'+
           '<div class="dash-head">'+
             '<div class="dash-title" style="display:flex;align-items:center;gap:9px;color:var(--text)"><span class="dash-icon-badge" style="background:var(--accent-light);color:var(--accent)"><i class="ti ti-home"></i></span> Gastos vida</div>'+
-            '<div style="display:flex;align-items:flex-end;gap:3px;height:36px">'+miniBars+'</div>'+
+            '<div class="mini-bars-wrap" style="display:flex;align-items:flex-end;gap:3px;height:36px;flex-shrink:0;min-width:90px">'+miniBars+'</div>'+
           '</div>'+
           '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:4px">'+
             '<span style="font-size:27px;font-weight:800;letter-spacing:-.6px">'+ars(totalARS)+'</span>'+
@@ -1243,16 +1255,16 @@ function renderTx(){
   const rows=filtered.map(di=>{
     const t=data[di];const usdVal=t.valor/T;
     return '<tr>'+
-      '<td style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
-      '<td class="td-desc">'+t.desc+(t.notas?'<div style="font-size:10px;color:var(--text3);font-style:italic;margin-top:2px">'+t.notas+'</div>':'')+
+      '<td data-label="Mes" style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
+      '<td class="td-desc" data-label="Descripción">'+t.desc+(t.notas?'<div style="font-size:10px;color:var(--text3);font-style:italic;margin-top:2px">'+t.notas+'</div>':'')+
       '</td>'+
-      '<td><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'" style="cursor:pointer" onclick="goToCatMes(\''+t.cat+'\',\''+t.mes+'\')" title="Ver total de esta categoría en '+t.mes+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
-      '<td style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
-      '<td><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':t.metodo==='TRANSFERENCIA'?'b-tr':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':t.metodo==='TRANSFERENCIA'?'Transferencia':'Crédito')+'</span></td>'+
-      '<td style="font-size:10px;color:var(--text3);white-space:nowrap">'+(t.fecha||'')+'</td>'+
-      '<td style="text-align:right"><div class="td-mono">'+ars(t.valor)+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm">'+(usdVal>0?usdFmt(usdVal):'')+'</div></td>'+
-      '<td><div class="action-btns">'+
+      '<td data-label="Categoría"><span class="badge '+(CATBADGE[t.cat]||'b-ot')+'" style="cursor:pointer" onclick="goToCatMes(\''+t.cat+'\',\''+t.mes+'\')" title="Ver total de esta categoría en '+t.mes+'">'+( CATLAB[t.cat]||t.cat)+'</span></td>'+
+      '<td data-label="Fuente" style="font-size:11px;color:var(--text3)">'+( t.fuente||'')+'</td>'+
+      '<td data-label="Método"><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':t.metodo==='TRANSFERENCIA'?'b-tr':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':t.metodo==='TRANSFERENCIA'?'Transferencia':'Crédito')+'</span></td>'+
+      '<td data-label="Cargado" style="font-size:10px;color:var(--text3);white-space:nowrap">'+(t.fecha||'')+'</td>'+
+      '<td data-label="ARS" style="text-align:right"><div class="td-mono">'+ars(t.valor)+'</div></td>'+
+      '<td data-label="USD" style="text-align:right"><div class="td-mono-sm">'+(usdVal>0?usdFmt(usdVal):'')+'</div></td>'+
+      '<td data-label=""><div class="action-btns">'+
         '<button class="icon-btn icon-btn-edit" data-di="'+di+'" title="Editar"><i class="ti ti-pencil"></i></button>'+
         '<button class="icon-btn icon-btn-del" data-di="'+di+'" title="Eliminar"><i class="ti ti-trash"></i></button>'+
       '</div></td>'+
@@ -1375,14 +1387,14 @@ function startEdit(di){
   const mesopts=MESES.map(m=>'<option value="'+m+'" '+(t.mes===m?'selected':'')+'>'+m.charAt(0).toUpperCase()+m.slice(1)+'</option>').join('');
   const catopts=CATS.map(c=>'<option value="'+c+'" '+(t.cat===c?'selected':'')+'>'+(CATLAB[c]||c)+'</option>').join('');
   const tr=document.querySelector('[data-di="'+di+'"]').closest('tr');
-  tr.innerHTML='<td><select class="edit-sel" id="e-mes" style="width:90px">'+mesopts+'</select></td>'+
-    '<td><input class="edit-inp" id="e-desc" value="'+t.desc+'" style="min-width:140px"><input class="edit-inp" id="e-notas" value="'+(t.notas||'')+'" placeholder="Notas..." style="min-width:140px;margin-top:3px;font-size:11px"></td>'+
-    '<td><select class="edit-sel" id="e-cat">'+catopts+'</select></td>'+
-    '<td><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" list="fuente-datalist" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
-    '<td><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="TRANSFERENCIA" '+(t.metodo==='TRANSFERENCIA'?'selected':'')+'>Transferencia</option></select></td>'+
-    '<td style="text-align:right"><input class="edit-inp" id="e-val" value="'+t.valor+'" type="number" style="width:100px;text-align:right"></td>'+
-    '<td style="text-align:right;font-size:11px;color:var(--text3)">'+usdFmt(t.valor/T)+'</td>'+
-    '<td><div style="display:flex;gap:4px">'+
+  tr.innerHTML='<td data-label="Mes"><select class="edit-sel" id="e-mes" style="width:90px">'+mesopts+'</select></td>'+
+    '<td class="td-desc" data-label="Descripción"><input class="edit-inp" id="e-desc" value="'+t.desc+'" style="min-width:140px"><input class="edit-inp" id="e-notas" value="'+(t.notas||'')+'" placeholder="Notas..." style="min-width:140px;margin-top:3px;font-size:11px"></td>'+
+    '<td data-label="Categoría"><select class="edit-sel" id="e-cat">'+catopts+'</select></td>'+
+    '<td data-label="Fuente"><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" list="fuente-datalist" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
+    '<td data-label="Método"><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="TRANSFERENCIA" '+(t.metodo==='TRANSFERENCIA'?'selected':'')+'>Transferencia</option></select></td>'+
+    '<td data-label="ARS" style="text-align:right"><input class="edit-inp" id="e-val" value="'+t.valor+'" type="number" style="width:100px;text-align:right"></td>'+
+    '<td data-label="USD" style="text-align:right;font-size:11px;color:var(--text3)">'+usdFmt(t.valor/T)+'</td>'+
+    '<td data-label=""><div style="display:flex;gap:4px">'+
       '<button class="icon-btn icon-btn-save" id="e-save"><i class="ti ti-check"></i></button>'+
       '<button class="icon-btn icon-btn-cancel" id="e-cancel"><i class="ti ti-x"></i></button>'+
     '</div></td>';
@@ -1906,14 +1918,14 @@ function renderInv(){
     const T=tc();
     const arsHoy=Math.round((parseFloat(m.valor_ars)||0)+(parseFloat(m.valor_usd)||0)*T);
     return '<tr>'+
-      '<td style="font-size:11px;color:var(--text3)">'+(m.fecha||'')+'</td>'+
-      '<td class="td-desc">'+(m.descripcion||'')+'</td>'+
-      '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
-      '<td style="text-align:right"><div class="td-mono">'+(m.valor_ars>0?ars(m.valor_ars):'-')+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm" style="color:var(--usd)">'+(m.valor_usd>0?'U$S '+parseFloat(m.valor_usd).toLocaleString('es-AR',{maximumFractionDigits:0}):'-')+'</div></td>'+
-      '<td style="text-align:right"><div class="td-mono-sm" style="color:var(--red)">'+(arsHoy>0?ars(arsHoy):'-')+'</div></td>'+
-      '<td style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
-      '<td><div class="action-btns">'+
+      '<td data-label="Fecha" style="font-size:11px;color:var(--text3)">'+(m.fecha||'')+'</td>'+
+      '<td class="td-desc" data-label="Descripción">'+(m.descripcion||'')+'</td>'+
+      '<td data-label="Cargado por" style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
+      '<td data-label="ARS" style="text-align:right"><div class="td-mono">'+(m.valor_ars>0?ars(m.valor_ars):'-')+'</div></td>'+
+      '<td data-label="USD" style="text-align:right"><div class="td-mono-sm" style="color:var(--usd)">'+(m.valor_usd>0?'U$S '+parseFloat(m.valor_usd).toLocaleString('es-AR',{maximumFractionDigits:0}):'-')+'</div></td>'+
+      '<td data-label="ARS hoy" style="text-align:right"><div class="td-mono-sm" style="color:var(--red)">'+(arsHoy>0?ars(arsHoy):'-')+'</div></td>'+
+      '<td data-label="TC" style="text-align:right;font-size:11px;color:var(--text3)">'+(m.tc?'$'+Math.round(m.tc).toLocaleString('es-AR'):'')+'</td>'+
+      '<td data-label=""><div class="action-btns">'+
         '<button class="icon-btn icon-btn-edit" data-id="'+m.id+'" data-cuenta="INVERSIONES" data-action="edit"><i class="ti ti-pencil"></i></button>'+
         '<button class="icon-btn icon-btn-del" data-id="'+m.id+'" data-cuenta="INVERSIONES" data-action="del"><i class="ti ti-trash"></i></button>'+
       '</div></td>'+
@@ -1984,14 +1996,14 @@ function startEditCuenta(id,cuenta){
   const selStyle='style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text);font-size:12px"';
   if(cuenta==='INVERSIONES'){
     row.innerHTML=
-      '<td><input id="ec-fecha" type="date" value="'+(m.fecha||'')+'" '+inpStyle+'></td>'+
-      '<td><input id="ec-desc" value="'+(m.descripcion||'')+'" '+inpStyle+'></td>'+
-      '<td style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
-      '<td><input id="ec-ars" type="number" value="'+(m.valor_ars||0)+'" '+inpStyle+'></td>'+
-      '<td></td>'+
-      '<td><input id="ec-usd" type="number" value="'+(m.valor_usd||0)+'" '+inpStyle+'></td>'+
-      '<td><input id="ec-tc" type="number" value="'+(m.tc||Math.round(T))+'" '+inpStyle+'></td>'+
-      '<td><div class="action-btns">'+
+      '<td data-label="Fecha"><input id="ec-fecha" type="date" value="'+(m.fecha||'')+'" '+inpStyle+'></td>'+
+      '<td data-label="Descripción" class="td-desc"><input id="ec-desc" value="'+(m.descripcion||'')+'" '+inpStyle+'></td>'+
+      '<td data-label="Cargado por" style="font-size:11px;color:var(--text3)">'+(m.creado_por||'')+'</td>'+
+      '<td data-label="ARS"><input id="ec-ars" type="number" value="'+(m.valor_ars||0)+'" '+inpStyle+'></td>'+
+      '<td data-label=""></td>'+
+      '<td data-label="USD"><input id="ec-usd" type="number" value="'+(m.valor_usd||0)+'" '+inpStyle+'></td>'+
+      '<td data-label="TC"><input id="ec-tc" type="number" value="'+(m.tc||Math.round(T))+'" '+inpStyle+'></td>'+
+      '<td data-label=""><div class="action-btns">'+
         '<button class="icon-btn icon-btn-save" id="ec-save" title="Guardar"><i class="ti ti-check"></i></button>'+
         '<button class="icon-btn" id="ec-cancel" title="Cancelar"><i class="ti ti-x"></i></button>'+
       '</div></td>';
