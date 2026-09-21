@@ -7,6 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
+canvas{max-width:100%!important}
 :root{
   --bg:#f7f7f8;--bg2:#ffffff;--bg3:#f0f0f2;
   --border:#e6e6ea;--border2:#d7d7dd;
@@ -23,7 +24,7 @@
   --sidebar-text:rgba(255,255,255,.86);--sidebar-text2:rgba(255,255,255,.42);--sidebar-text3:rgba(255,255,255,.24);
   --usd:#0891b2;--usd-bg:#e6f7fa;
 }
-html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh;transition:background .2s,color .2s;-webkit-font-smoothing:antialiased}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh;transition:background .2s,color .2s;-webkit-font-smoothing:antialiased;overflow-x:hidden;max-width:100vw}
 .td-mono,.metric-value,.dash-ars,.cuenta-val,.mes-ars,.sum-amt,td.num,.vida-stat-val{font-feature-settings:"tnum" 1,"lnum" 1;font-variant-numeric:tabular-nums}
 body.dark{
   --bg:#0f0f12;--bg2:#18181d;--bg3:#212127;
@@ -101,6 +102,7 @@ body.dark .login-card{background:var(--bg2)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 /* WIDGET GRID (dashboard-style) */
 .widget-grid{display:grid;gap:20px}
+.widget-grid>*,.g2>*{min-width:0}
 .widget-grid-2{grid-template-columns:1fr 1fr}
 .widget-grid-3{grid-template-columns:1fr 1fr 1fr}
 .w-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 26px;box-shadow:var(--shadow);transition:box-shadow .15s}
