@@ -253,6 +253,34 @@ tr:hover .action-btns{opacity:1}
 .dash-row{display:flex;justify-content:space-between;align-items:center;font-size:11px}
 .dash-key{color:var(--text3)}.dash-val{font-weight:600;color:var(--text)}
 .dash-sub-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin:6px 0 3px}
+
+/* RESPONSIVE / MOBILE */
+.menu-toggle{display:none;background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:4px;align-items:center}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:29}
+@media (max-width:900px){
+  .app{position:relative;overflow:hidden}
+  .menu-toggle{display:flex}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:30;transform:translateX(-100%);transition:transform .22s ease;box-shadow:0 0 0 transparent}
+  .sidebar.open{transform:translateX(0);box-shadow:12px 0 32px rgba(0,0,0,.25)}
+  .sidebar-overlay.show{display:block}
+  .main{width:100%}
+  .content{padding:16px}
+  .g2,.widget-grid-2,.widget-grid-3{grid-template-columns:1fr!important}
+  .work-grid{grid-template-columns:1fr 1fr}
+  .topbar{padding:12px 16px;flex-wrap:wrap;gap:10px}
+  .topbar-btns{flex-wrap:wrap}
+  .page-title{font-size:15px}
+  .mes-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .hero-card{flex-direction:column;align-items:flex-start;gap:10px}
+  .vida-stats{grid-template-columns:1fr 1fr;row-gap:12px}
+  .vida-stat{border-right:none!important;padding:0!important}
+  table{font-size:11px}
+  th,td{padding:9px 10px!important}
+}
+@media (max-width:520px){
+  .work-grid{grid-template-columns:1fr}
+  .g2{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -290,7 +318,8 @@ tr:hover .action-btns{opacity:1}
 
 <!-- APP -->
 <div class="app" id="app">
-  <aside class="sidebar">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
     <div class="logo-area">
       <div class="logo">
         <div class="logo-icon">GP</div>
@@ -323,9 +352,12 @@ tr:hover .action-btns{opacity:1}
 
   <main class="main">
     <div class="topbar">
-      <div>
-        <div class="page-title" id="pg-title">Overview</div>
-        <div class="page-sub" id="pg-sub">Cargando...</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú"><i class="ti ti-menu-2"></i></button>
+        <div>
+          <div class="page-title" id="pg-title">Overview</div>
+          <div class="page-sub" id="pg-sub">Cargando...</div>
+        </div>
       </div>
       <div class="topbar-btns">
         <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm)">
@@ -805,7 +837,14 @@ function updateSubtitle(){
   document.getElementById('pg-sub').textContent=label.charAt(0).toUpperCase()+label.slice(1)+' · '+mes.length+' meses';
 }
 
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+
 function go(id){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
   document.querySelectorAll('.nav-item').forEach((n,i)=>{n.classList.toggle('active',NAV_IDS[i]===id);});
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
