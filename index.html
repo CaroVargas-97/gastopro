@@ -813,10 +813,17 @@ async function saveTransaction(t){
   setSyncStatus('saving');
   try{
     const row={user_id:currentUser.id,mes:t.mes,descripcion:t.desc,metodo:t.metodo,valor:t.valor,usd:t.usd,cat:t.cat,fuente:t.fuente||'',notas:t.notas||null,fecha:t.fecha||null};
-    if(t._id){await sb.from('transacciones').update(row).eq('id',t._id);}
-    else{const {data:ins}=await sb.from('transacciones').insert(row).select().single();t._id=ins.id;}
+    if(t._id){
+      const {error}=await sb.from('transacciones').update(row).eq('id',t._id);
+      if(error)throw error;
+    }else{
+      const {data:ins,error}=await sb.from('transacciones').insert(row).select().single();
+      if(error)throw error;
+      t._id=ins.id;
+    }
     setSyncStatus('ok');
-  }catch(e){setSyncStatus('error');showToast('Error al guardar: '+e.message);}
+    return true;
+  }catch(e){setSyncStatus('error');showToast('Error al guardar: '+e.message);return false;}
 }
 
 async function deleteTransaction(id){
@@ -1500,12 +1507,13 @@ async function addManual(){
   const btn=document.querySelector('#sec-cargar .btn-accent');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="border-top-color:#fff;width:14px;height:14px;margin:0 auto"></div>';}
   const t={mes,desc:desc.toUpperCase(),metodo,valor,usd:valor/tc(),cat,fuente,notas:notas||null};
-  data.push(t);
-  await saveTransaction(t);
+  const ok=await saveTransaction(t);
   if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-plus"></i> Agregar gasto';}
+  if(!ok)return;
+  data.push(t);
   document.getElementById('mDesc').value='';document.getElementById('mVal').value='';
   document.getElementById('mFuente').value='';document.getElementById('mNotas').value='';
-  populateMesFilter();showToast('Gasto agregado');go('overview');
+  populateMesFilter();showToast('✓ Gasto agregado');go('overview');
 }
 
 async function borrarFiltrados(){
