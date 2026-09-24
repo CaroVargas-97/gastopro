@@ -276,10 +276,10 @@ const SUPA_KEY='sb_publishable_0XEjYVJ8j5Dlqa6SERapvA_VgOMLzWF';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const CATS_VIDA=['ALQUILER','ARREGLOS CASA','SERVICIOS','TARJETAS','COMIDAS','SUPERMERCADO','DELIVERY','AUTO','VIAJES','SUSCRIPCIONES','CAJA CHICA','INVERSIONES','OTROS','SALUD','TOTA','MILO'];
+const CATS_VIDA=['ALQUILER','ARREGLOS CASA','SERVICIOS','TARJETAS','COMIDAS','SUPERMERCADO','DELIVERY','AUTO','VIAJES','SUSCRIPCIONES','CAJA CHICA','INVERSIONES','OTROS','SALUD','TOTA','MILO','SUELDO','931','BOLETAS SINDICALES'];
 const FUENTES=['AMEX','FRANCES','SANTANDER','BBVA','EFECTIVO','OTRA'];
-const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','INVERSIONES':'Inversiones','SALUD':'Salud','TOTA':'Tota','MILO':'Milo'};
-const CATCOL={'ALQUILER':'#3b82f6','ARREGLOS CASA':'#0284c7','SERVICIOS':'#14b8a6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','COMIDAS':'#f97316','SUPERMERCADO':'#65a30d','DELIVERY':'#fb923c','SUSCRIPCIONES':'#8b5cf6','INVERSIONES':'#dc2626','SALUD':'#a855f7','TOTA':'#eab308','MILO':'#f472b6'};
+const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','INVERSIONES':'Inversiones','SALUD':'Salud','TOTA':'Tota','MILO':'Milo','SUELDO':'Sueldo (Caro)','931':'931','BOLETAS SINDICALES':'Boletas sindicales'};
+const CATCOL={'ALQUILER':'#3b82f6','ARREGLOS CASA':'#0284c7','SERVICIOS':'#14b8a6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','COMIDAS':'#f97316','SUPERMERCADO':'#65a30d','DELIVERY':'#fb923c','SUSCRIPCIONES':'#8b5cf6','INVERSIONES':'#dc2626','SALUD':'#a855f7','TOTA':'#eab308','MILO':'#f472b6','SUELDO':'#0369a1','931':'#a21caf','BOLETAS SINDICALES':'#059669'};
 
 let currentUser=null;
 let currentTab='vida';

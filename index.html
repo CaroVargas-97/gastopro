@@ -138,6 +138,7 @@ body.dark .login-card{background:var(--bg2)}
 .b-alq{background:#eff6ff;color:#1d4ed8}.b-arc{background:#f0f9ff;color:#0369a1}.b-srv{background:#f0fdfa;color:#0f766e}
 .b-sup{background:#f7fee7;color:#4d7c0f}.b-del{background:#fff7ed;color:#c2410c}
 .b-tot{background:#fefce8;color:#a16207}.b-mil{background:#fdf2f8;color:#be185d}
+.b-sue{background:#eff6ff;color:#0369a1}.b-931{background:#fdf4ff;color:#a21caf}.b-bsi{background:#ecfdf5;color:#059669}
 /* TABLE */
 .tx-toolbar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .fsel{background:var(--bg3);border:1px solid transparent;color:var(--text);font-size:12px;font-weight:500;padding:7px 11px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);outline:none;transition:border-color .12s}
@@ -273,10 +274,27 @@ tr:hover .action-btns{opacity:1}
   .topbar-btns{flex-wrap:wrap}
   .page-title{font-size:15px}
   .mes-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
-  .hero-card{flex-direction:column;align-items:flex-start;gap:10px}
+  /* look nativo compacto: menos "hero", tarjetas chicas y livianas */
+  .hero-card{background:var(--accent);border:none;flex-direction:row;align-items:center;gap:12px;padding:16px 18px;border-radius:14px}
+  .hero-card .hero-icon{background:rgba(255,255,255,.18);color:#fff;width:38px;height:38px;font-size:17px}
+  .hero-card span[style*="font-size:32px"]{font-size:22px!important;color:#fff!important}
+  .hero-card span[style*="color:var(--text3)"]{color:rgba(255,255,255,.65)!important}
+  .hero-card div[style*="color:var(--text3)"]{color:rgba(255,255,255,.7)!important}
   .dash-head{flex-wrap:wrap;row-gap:8px}
-  .vida-stats{grid-template-columns:1fr 1fr;row-gap:12px}
+  .vida-card,.w-card{padding:14px 16px;border-radius:14px}
+  .vida-card .dash-title,.w-card-title{font-size:10px}
+  .dash-icon-badge{width:26px;height:26px;font-size:13px;border-radius:8px}
+  .vida-card div[style*="font-size:27px"]{font-size:19px!important}
+  .vida-stats{grid-template-columns:1fr 1fr;row-gap:10px;padding-top:10px;margin-top:10px}
   .vida-stat{border-right:none!important;padding:0!important}
+  .vida-stat-val{font-size:13px}
+  .vida-stat-lbl{font-size:9px}
+  .dash-section-lbl{margin-top:18px;font-size:10px}
+  .widget-grid{gap:12px}
+  .w-card-head{margin-bottom:12px}
+  .w-metric-val{font-size:17px!important}
+  .metric{padding:14px 16px}
+  .metric-value{font-size:18px}
   table{font-size:11px}
   th,td{padding:9px 10px!important}
 
@@ -457,6 +475,7 @@ tr:hover .action-btns{opacity:1}
             <option value="SUPERMERCADO">SUPERMERCADO</option><option value="DELIVERY">DELIVERY</option>
             <option>SUSCRIPCIONES</option><option>INVERSIONES</option><option>SALUD</option>
             <option>TOTA</option><option>MILO</option>
+            <option value="SUELDO">SUELDO</option><option value="931">931</option><option value="BOLETAS SINDICALES">BOLETAS SINDICALES</option>
           </select>
           <select class="fsel" id="fMet" onchange="renderTx()">
             <option value="">Todos los métodos</option><option>EFECTIVO</option><option>CREDITO</option><option>TRANSFERENCIA</option>
@@ -566,6 +585,7 @@ tr:hover .action-btns{opacity:1}
                   <option value="DELIVERY">Delivery</option><option value="SUSCRIPCIONES">Suscripciones</option>
                   <option value="INVERSIONES">Inversiones</option><option value="SALUD">Salud</option>
                   <option value="TOTA">Tota</option><option value="MILO">Milo</option>
+                  <option value="SUELDO">Sueldo (Caro)</option><option value="931">931</option><option value="BOLETAS SINDICALES">Boletas sindicales</option>
                 </select>
               </div>
               <div class="ff"><label class="flabel">Valor ARS</label><input class="finput" id="mVal" type="number" placeholder="0"></div>
@@ -652,10 +672,10 @@ const SUPA_KEY='sb_publishable_0XEjYVJ8j5Dlqa6SERapvA_VgOMLzWF';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const CATCOL={'ALQUILER':'#3b82f6','ARREGLOS CASA':'#0284c7','SERVICIOS':'#14b8a6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','COMIDAS':'#f97316','SUPERMERCADO':'#65a30d','DELIVERY':'#fb923c','SUSCRIPCIONES':'#8b5cf6','INVERSIONES':'#dc2626','SALUD':'#a855f7','TOTA':'#eab308','MILO':'#f472b6'};
-const CATBADGE={'ALQUILER':'b-alq','ARREGLOS CASA':'b-arc','SERVICIOS':'b-srv','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','CAJA CHICA':'b-caj','VIAJES':'b-via','COMIDAS':'b-com','SUPERMERCADO':'b-sup','DELIVERY':'b-del','SUSCRIPCIONES':'b-sus','INVERSIONES':'b-inv','SALUD':'b-sal','TOTA':'b-tot','MILO':'b-mil'};
-const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','INVERSIONES':'Inversiones','SALUD':'Salud','TOTA':'Tota','MILO':'Milo'};
-const CATS=['ALQUILER','ARREGLOS CASA','SERVICIOS','TARJETAS','OTROS','AUTO','CAJA CHICA','VIAJES','COMIDAS','SUPERMERCADO','DELIVERY','SUSCRIPCIONES','INVERSIONES','SALUD','TOTA','MILO'];
+const CATCOL={'ALQUILER':'#3b82f6','ARREGLOS CASA':'#0284c7','SERVICIOS':'#14b8a6','TARJETAS':'#7c3aed','OTROS':'#9ca3af','AUTO':'#f59e0b','CAJA CHICA':'#16a34a','VIAJES':'#ec4899','COMIDAS':'#f97316','SUPERMERCADO':'#65a30d','DELIVERY':'#fb923c','SUSCRIPCIONES':'#8b5cf6','INVERSIONES':'#dc2626','SALUD':'#a855f7','TOTA':'#eab308','MILO':'#f472b6','SUELDO':'#0369a1','931':'#a21caf','BOLETAS SINDICALES':'#059669'};
+const CATBADGE={'ALQUILER':'b-alq','ARREGLOS CASA':'b-arc','SERVICIOS':'b-srv','TARJETAS':'b-tar','OTROS':'b-ot','AUTO':'b-aut','CAJA CHICA':'b-caj','VIAJES':'b-via','COMIDAS':'b-com','SUPERMERCADO':'b-sup','DELIVERY':'b-del','SUSCRIPCIONES':'b-sus','INVERSIONES':'b-inv','SALUD':'b-sal','TOTA':'b-tot','MILO':'b-mil','SUELDO':'b-sue','931':'b-931','BOLETAS SINDICALES':'b-bsi'};
+const CATLAB={'ALQUILER':'Alquiler','ARREGLOS CASA':'Arreglos de la casa','SERVICIOS':'Servicios (luz/gas/agua/internet)','TARJETAS':'Tarjetas','OTROS':'Otros','AUTO':'Auto','CAJA CHICA':'Caja chica','VIAJES':'Viajes','COMIDAS':'Comidas afuera','SUPERMERCADO':'Supermercado','DELIVERY':'Delivery','SUSCRIPCIONES':'Suscripciones','INVERSIONES':'Inversiones','SALUD':'Salud','TOTA':'Tota','MILO':'Milo','SUELDO':'Sueldo (Caro)','931':'931','BOLETAS SINDICALES':'Boletas sindicales'};
+const CATS=['ALQUILER','ARREGLOS CASA','SERVICIOS','TARJETAS','OTROS','AUTO','CAJA CHICA','VIAJES','COMIDAS','SUPERMERCADO','DELIVERY','SUSCRIPCIONES','INVERSIONES','SALUD','TOTA','MILO','SUELDO','931','BOLETAS SINDICALES'];
 const PAGES={overview:'Dashboard',analisis:'Análisis',transacciones:'Transacciones',inversiones:'Inversiones',cargar:'Cargar datos',historial:'Historial',config:'Configuración'};
 const NAV_IDS=['overview','analisis','transacciones','inversiones','cargar','historial','config'];
 
@@ -664,7 +684,7 @@ const PROMPT=`Sos un extractor de gastos financieros en Argentina. Analizá el r
 1. "total_ars": el monto TOTAL A PAGAR en pesos argentinos. En AMEX: la primera página muestra una fila con 3 números (Saldo Anterior / Créditos / Débitos) y el "Saldo a pagar $" aparece APARTE en un recuadro destacado o junto a "Próximo Vencimiento" — ese es el correcto, NO el tercer número de la fila. También puede aparecer como "2.360.645,99" junto a "07/09/26". En BBVA es "Saldo Actual $". NUNCA uses el valor de "Débitos $" ni "Saldo Anterior $".
 2. "total_usd": el monto total a pagar en dólares. En AMEX es "Saldo a pagar U$S". Si es 0,00 poner 0.
 3. "transacciones": array con TODOS los gastos individuales, cada uno con:
-{"mes":"enero|febrero|...|diciembre","fecha":"DD/MM","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"ALQUILER|ARREGLOS CASA|SERVICIOS|TARJETAS|AUTO|OTROS|CAJA CHICA|VIAJES|COMIDAS|SUPERMERCADO|DELIVERY|SUSCRIPCIONES|INVERSIONES|SALUD|TOTA|MILO"}
+{"mes":"enero|febrero|...|diciembre","fecha":"DD/MM","desc":"DESCRIPCION EN MAYUSCULAS","metodo":"EFECTIVO|CREDITO","valor_ars":0,"valor_usd":0,"cat":"ALQUILER|ARREGLOS CASA|SERVICIOS|TARJETAS|AUTO|OTROS|CAJA CHICA|VIAJES|COMIDAS|SUPERMERCADO|DELIVERY|SUSCRIPCIONES|INVERSIONES|SALUD|TOTA|MILO|SUELDO|931|BOLETAS SINDICALES"}
 
 El campo "mes" debe ser detectado del propio contenido del resumen. Los resúmenes bancarios suelen corresponder al mes ANTERIOR al mes en que se reciben — si el resumen dice "período julio 2026" o las fechas de las transacciones son de julio, usá "julio". No asumas el mes actual.
 El campo "fecha" es la fecha de la transacción tal como figura en el resumen (ej: "05/08"). Si no aparece fecha, dejarlo como "".
@@ -676,7 +696,7 @@ REGLA DE MONEDAS:
 
 IGNORAR SOLO: "GRACIAS POR SU PAGO", "PAGO RECIBIDO", "SU PAGO EN PESOS", "SU PAGO EN USD", "SALDO ANTERIOR" — es decir, solo los pagos ya realizados. NO ignorar intereses, comisiones, IVA, recargos ni ningún otro cargo porque son parte del gasto real.
 
-CATEGORIAS: alquiler/expensas→ALQUILER; plomero/electricista/pintura/mantenimiento del hogar/ferretería para arreglos→ARREGLOS CASA; luz/gas/agua/internet/telefono/cable/seguridad del hogar/prosegur→SERVICIOS; supermercado/almacén/verdulería/hipermercado→SUPERMERCADO; rappi/pedidosya/delivery de comida→DELIVERY; restaurante/bar/cafetería/comida en el lugar/fast food→COMIDAS; nafta/combustible/peaje/seguro auto/patentes/taller/mecánico/repuestos/estacionamiento/parking/autopista/toll→AUTO; pagos resumen tarjeta de crédito/impuestos y percepciones del resumen (IVA, IIBB, RG 5617, comisiones)→TARJETAS; Apple/Spotify/Netflix/Disney/suscripciones digitales→SUSCRIPCIONES; viajes/hotel/avion/turismo/duty free/mall extranjero/cabify/uber/taxi/remis/transfer→VIAJES; veterinaria/petshop/comida de mascota→TOTA (es la mascota); colegio/jardín/pediatra/jugueteria/ropa de niño→MILO (es el hijo); resto→OTROS. Si un gasto podría ser de Tota o Milo pero no hay certeza por el nombre del comercio, usar OTROS en vez de adivinar mal.
+CATEGORIAS: alquiler/expensas→ALQUILER; plomero/electricista/pintura/mantenimiento del hogar/ferretería para arreglos→ARREGLOS CASA; luz/gas/agua/internet/telefono/cable/seguridad del hogar/prosegur→SERVICIOS; supermercado/almacén/verdulería/hipermercado→SUPERMERCADO; rappi/pedidosya/delivery de comida→DELIVERY; restaurante/bar/cafetería/comida en el lugar/fast food→COMIDAS; nafta/combustible/peaje/seguro auto/patentes/taller/mecánico/repuestos/estacionamiento/parking/autopista/toll→AUTO; pagos resumen tarjeta de crédito/impuestos y percepciones del resumen (IVA, IIBB, RG 5617, comisiones)→TARJETAS; Apple/Spotify/Netflix/Disney/suscripciones digitales→SUSCRIPCIONES; viajes/hotel/avion/turismo/duty free/mall extranjero/cabify/uber/taxi/remis/transfer→VIAJES; veterinaria/petshop/comida de mascota→TOTA (es la mascota); colegio/jardín/pediatra/jugueteria/ropa de niño→MILO (es el hijo); pago de sueldo de la asistente personal Caro→SUELDO; formulario 931/aportes y contribuciones AFIP→931; cuota sindical/boleta de sindicato→BOLETAS SINDICALES; resto→OTROS. Si un gasto podría ser de Tota o Milo pero no hay certeza por el nombre del comercio, usar OTROS en vez de adivinar mal.
 
 Respondé ÚNICAMENTE con el objeto JSON, sin markdown, sin backticks, sin texto adicional.`;
 
