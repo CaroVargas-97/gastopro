@@ -411,7 +411,9 @@ tr:hover .action-btns{opacity:1}
         <div class="dash-section-lbl">Personal</div>
         <div id="dash-vida" style="margin-bottom:16px"></div>
         <div class="dash-section-lbl">Inversión · Departamento en pozo</div>
-        <div id="dash-inv"></div>
+        <div id="dash-inv" style="margin-bottom:16px"></div>
+        <div class="dash-section-lbl">Costo Caro</div>
+        <div id="dash-caro"></div>
       </div>
 
       <!-- ANALISIS -->
@@ -1016,6 +1018,35 @@ function renderOverview(){
       '</div>'+
     '</div>'+
   '</div>';
+
+  /* ── COSTO CARO (sueldo + 931 + boletas sindicales) ── */
+  const caroEl=document.getElementById('dash-caro');
+  if(caroEl){
+    const caroCats=['SUELDO','931','BOLETAS SINDICALES'];
+    const caroTxs=data.filter(t=>caroCats.includes(t.cat));
+    const totalCaro=caroTxs.reduce((s,t)=>s+t.valor,0);
+    if(!totalCaro){
+      caroEl.innerHTML='<div class="vida-card" style="text-align:center;padding:1.5rem;color:var(--text3);font-size:12px">Sin gastos cargados en Sueldo, 931 o Boletas sindicales todavía.</div>';
+    }else{
+      const desglose=caroCats.map(c=>{
+        const v=data.filter(t=>t.cat===c).reduce((s,t)=>s+t.valor,0);
+        if(!v)return'';
+        const pct=Math.round(v/totalCaro*100);
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">'+
+          '<span style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:50%;background:'+CATCOL[c]+'"></span>'+(CATLAB[c]||c)+'</span>'+
+          '<span style="font-size:12px;font-weight:700;color:var(--text)">'+ars(v)+' <span style="color:var(--text3);font-weight:400">('+pct+'%)</span></span>'+
+        '</div>';
+      }).join('');
+      caroEl.innerHTML='<div class="vida-card">'+
+        '<div class="dash-head">'+
+          '<div class="dash-title" style="display:flex;align-items:center;gap:9px;color:var(--text)"><span class="dash-icon-badge" style="background:#eff6ff;color:#0369a1"><i class="ti ti-user-dollar"></i></span> Costo Caro</div>'+
+        '</div>'+
+        '<div style="font-size:21px;font-weight:800;letter-spacing:-.4px;margin-bottom:2px">'+ars(totalCaro)+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-bottom:12px">'+caroTxs.length+' movimientos</div>'+
+        desglose+
+      '</div>';
+    }
+  }
 }
 
 function editDeptoConfig(field){

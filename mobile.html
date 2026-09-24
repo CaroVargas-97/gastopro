@@ -835,7 +835,22 @@ function buildResumenDashboard(){
     '<div class="mgrid2">'+
       '<div class="mcard" style="margin-bottom:0"><div class="mcard-lbl">Último mes</div><div class="mcard-val" style="font-size:16px">'+arsF(ultMes)+'</div>'+(cambio!==null?'<div class="mcard-sub" style="color:'+(cambio>=0?'#e11d48':'#059669')+'">'+(cambio>=0?'▲':'▼')+Math.abs(Math.round(cambio))+'% vs anterior</div>':'')+'</div>'+
       '<div class="mcard" style="margin-bottom:0"><div class="mcard-lbl">Efectivo</div><div class="mcard-val" style="font-size:16px">'+(totalARS>0?Math.round(ef/totalARS*100):0)+'%</div><div class="mcard-sub">'+arsF(ef)+'</div></div>'+
-    '</div>';
+    '</div>'+
+    buildCostoCaroCard();
+}
+
+function buildCostoCaroCard(){
+  const caroCats=['SUELDO','931','BOLETAS SINDICALES'];
+  const caroTxs=resumenTxData.filter(function(t){return caroCats.indexOf(t.cat)>-1;});
+  const totalCaro=caroTxs.reduce(function(s,t){return s+t.valor;},0);
+  if(!totalCaro)return'';
+  const desglose=caroCats.map(function(c){
+    const v=resumenTxData.filter(function(t){return t.cat===c;}).reduce(function(s,t){return s+t.valor;},0);
+    if(!v)return'';
+    const pct=Math.round(v/totalCaro*100);
+    return '<div class="mlegend-row"><span class="mlegend-dot" style="background:'+CATCOL[c]+'"></span><span class="mlegend-lbl">'+CATLAB[c]+'</span><span class="mlegend-amt">'+arsF(v)+' ('+pct+'%)</span></div>';
+  }).join('');
+  return '<div class="mcard"><div class="mcard-lbl">Costo Caro</div><div class="mcard-val" style="margin-bottom:8px">'+arsF(totalCaro)+'</div>'+desglose+'</div>';
 }
 
 function resumenChartColors(){return{text3:'#b0ada6',grid:'rgba(0,0,0,.05)',barDim:'#c9c2ff'};}
