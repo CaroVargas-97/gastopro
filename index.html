@@ -1497,13 +1497,13 @@ async function delRow(di){
 
 async function addManual(){
   const mes=document.getElementById('mMes').value;
-  const desc=document.getElementById('mDesc').value.trim();
   const metodo=document.getElementById('mMet').value;
   const cat=document.getElementById('mCat').value;
+  const desc=document.getElementById('mDesc').value.trim()||CATLAB[cat]||cat;
   const valor=parseFloat(document.getElementById('mVal').value);
   const fuente=normFuente(document.getElementById('mFuente').value);
   const notas=(document.getElementById('mNotas').value||'').trim();
-  if(!mes||!desc||!valor){showToast('Completá todos los campos');return;}
+  if(!mes||!valor){showToast('Completá el mes y el monto');return;}
   const btn=document.querySelector('#sec-cargar .btn-accent');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="border-top-color:#fff;width:14px;height:14px;margin:0 auto"></div>';}
   const t={mes,desc:desc.toUpperCase(),metodo,valor,usd:valor/tc(),cat,fuente,notas:notas||null};

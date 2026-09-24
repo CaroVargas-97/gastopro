@@ -749,12 +749,12 @@ function formVida(){
 async function saveVida(){
   const mes=document.getElementById('v-mes').value;
   const cat=document.getElementById('v-cat').value;
-  const desc=document.getElementById('v-desc').value.trim();
+  const desc=document.getElementById('v-desc').value.trim()||CATLAB[cat]||cat;
   const val=parseFloat(document.getElementById('v-val').value);
   const met=document.getElementById('v-met').value;
   const fuente=document.getElementById('v-fuente').value;
   const notas=document.getElementById('v-notas').value.trim();
-  if(!desc||!val){showToast('Completá descripción y monto');return;}
+  if(!val){showToast('Completá el monto');return;}
   const btn=document.querySelector('.btn-save');
   btn.disabled=true;btn.textContent='Verificando...';
   try{
