@@ -478,6 +478,7 @@ tr:hover .action-btns{opacity:1}
             <option>SUSCRIPCIONES</option><option>INVERSIONES</option><option>SALUD</option>
             <option>TOTA</option><option>MILO</option>
             <option value="SUELDO">SUELDO</option><option value="931">931</option><option value="BOLETAS SINDICALES">BOLETAS SINDICALES</option>
+            <option value="__caro__">COSTO CARO (Sueldo+931+Boletas)</option>
           </select>
           <select class="fsel" id="fMet" onchange="renderTx()">
             <option value="">Todos los métodos</option><option>EFECTIVO</option><option>CREDITO</option><option>TRANSFERENCIA</option>
@@ -1047,6 +1048,7 @@ function renderOverview(){
       caroEl.innerHTML='<div class="vida-card">'+
         '<div class="dash-head">'+
           '<div class="dash-title" style="display:flex;align-items:center;gap:9px;color:var(--text)"><span class="dash-icon-badge" style="background:#eff6ff;color:#0369a1"><i class="ti ti-user-dollar"></i></span> Costo Caro</div>'+
+          '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="goToCostoCaro()">Ver todo <i class="ti ti-arrow-right" style="font-size:12px"></i></button>'+
         '</div>'+
         '<div style="font-size:21px;font-weight:800;letter-spacing:-.4px;margin-bottom:2px">'+ars(totalCaro)+'</div>'+
         '<div style="font-size:11px;color:var(--text3);margin-bottom:12px">'+caroTxs.length+' movimientos</div>'+
@@ -1252,6 +1254,13 @@ function goToCatMes(cat,mes){
   renderTx();
 }
 
+function goToCostoCaro(){
+  go('transacciones');
+  document.getElementById('fCat').value='__caro__';
+  document.getElementById('fMes').value='';
+  renderTx();
+}
+
 /* TRANSACCIONES */
 function normFuente(s){return(s||'').trim().replace(/\s+/g,' ').toUpperCase();}
 
@@ -1270,6 +1279,9 @@ function populateMesFilter(){
   if(dl)dl.innerHTML=fuentes.map(f=>'<option value="'+f+'">').join('');
 }
 
+const CARO_CATS=['SUELDO','931','BOLETAS SINDICALES'];
+function catMatch(t,cat){return!cat||(cat==='__caro__'?CARO_CATS.includes(t.cat):t.cat===cat);}
+
 function renderTx(){
   const T=tc();
   const mes=document.getElementById('fMes').value;
@@ -1277,13 +1289,13 @@ function renderTx(){
   const summaryEl=document.getElementById('tx-mes-summary');
   if(summaryEl){
     if(mes||cat){
-      const scopeTxs=data.filter(t=>(!mes||t.mes===mes)&&(!cat||t.cat===cat));
+      const scopeTxs=data.filter(t=>(!mes||t.mes===mes)&&catMatch(t,cat));
       const totARS=scopeTxs.reduce((s,t)=>s+t.valor,0);
       const totUSD=scopeTxs.reduce((s,t)=>s+(t.usd>0?t.usd:t.valor/T),0);
       const efARS=scopeTxs.filter(t=>t.metodo==='EFECTIVO').reduce((s,t)=>s+t.valor,0);
       const crARS=scopeTxs.filter(t=>t.metodo==='CREDITO').reduce((s,t)=>s+t.valor,0);
       const efPct=totARS>0?Math.round(efARS/totARS*100):0;
-      const label=(cat?(CATLAB[cat]||cat):'')+(cat&&mes?' · ':'')+(mes?mes:(cat?'todos los meses':''));
+      const label=(cat?(cat==='__caro__'?'Costo Caro':(CATLAB[cat]||cat)):'')+(cat&&mes?' · ':'')+(mes?mes:(cat?'todos los meses':''));
       summaryEl.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-lg);padding:14px 18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">'+
         '<div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:capitalize;min-width:60px">'+label+'</div>'+
         '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Total ARS</div><div style="font-size:16px;font-weight:700">'+ars(totARS)+'</div></div>'+
@@ -1305,7 +1317,7 @@ function renderTx(){
     const tFuenteEfectiva=t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'');
     const fuenteOk=!fuente||(fuente==='__sin_fuente__'?(!t.fuente&&t.metodo!=='EFECTIVO'):tFuenteEfectiva===fuente);
     const txtOk=!txt||(t.desc||'').toLowerCase().includes(txt)||(t.notas||'').toLowerCase().includes(txt)||(t.fuente||'').toLowerCase().includes(txt);
-    if((!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fuenteOk&&txtOk)filtered.push(i);
+    if((!mes||t.mes===mes)&&catMatch(t,cat)&&(!met||t.metodo===met)&&fuenteOk&&txtOk)filtered.push(i);
   });
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
@@ -1522,7 +1534,7 @@ async function borrarFiltrados(){
   const met=document.getElementById('fMet').value;
   const fuente=document.getElementById('fFuente').value;
   const txt=(document.getElementById('fText').value||'').toLowerCase();
-  const toDelete=data.filter(t=>{const tFE=t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'');const fOk=!fuente||(fuente==='__sin_fuente__'?(!t.fuente&&t.metodo!=='EFECTIVO'):tFE===fuente);return(!mes||t.mes===mes)&&(!cat||t.cat===cat)&&(!met||t.metodo===met)&&fOk&&(!txt||(t.desc||'').toLowerCase().includes(txt));});
+  const toDelete=data.filter(t=>{const tFE=t.fuente||(t.metodo==='EFECTIVO'?'EFECTIVO':'');const fOk=!fuente||(fuente==='__sin_fuente__'?(!t.fuente&&t.metodo!=='EFECTIVO'):tFE===fuente);return(!mes||t.mes===mes)&&catMatch(t,cat)&&(!met||t.metodo===met)&&fOk&&(!txt||(t.desc||'').toLowerCase().includes(txt));});
   if(!toDelete.length){showToast('No hay transacciones con ese filtro');return;}
   if(!confirm('¿Borrar '+toDelete.length+' transacciones filtradas? Esta acción no se puede deshacer.'))return;
   setSyncStatus('saving');
