@@ -249,7 +249,7 @@ tr:hover .action-btns{opacity:1}
 .work-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
 .dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;border-left:3px solid}
 .dash-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.dash-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.dash-title{font-size:14px;font-weight:700;text-transform:none;letter-spacing:-.1px;display:flex;align-items:center;gap:9px}
 .dash-ars{font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1}
 .dash-usd{font-size:11px;color:var(--text3);margin-top:3px;margin-bottom:10px;min-height:15px}
 .dash-analysis{border-top:1px solid var(--border);padding-top:9px;display:flex;flex-direction:column;gap:5px}
@@ -1036,12 +1036,13 @@ function renderOverview(){
     if(!totalCaro){
       caroEl.innerHTML='<div class="vida-card" style="text-align:center;padding:1.5rem;color:var(--text3);font-size:12px">Sin gastos cargados en Sueldo, 931 o Boletas sindicales todavía.</div>';
     }else{
-      const desglose=caroCats.map(c=>{
+      const caroShades=['#0369a1','#38bdf8','#bae6fd'];
+      const desglose=caroCats.map((c,ci)=>{
         const v=data.filter(t=>t.cat===c).reduce((s,t)=>s+t.valor,0);
         if(!v)return'';
         const pct=Math.round(v/totalCaro*100);
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">'+
-          '<span style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:50%;background:'+CATCOL[c]+'"></span>'+(CATLAB[c]||c)+'</span>'+
+          '<span style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:50%;background:'+caroShades[ci]+'"></span>'+(CATLAB[c]||c)+'</span>'+
           '<span style="font-size:12px;font-weight:700;color:var(--text)">'+ars(v)+' <span style="color:var(--text3);font-weight:400">('+pct+'%)</span></span>'+
         '</div>';
       }).join('');

@@ -844,11 +844,12 @@ function buildCostoCaroCard(){
   const caroTxs=resumenTxData.filter(function(t){return caroCats.indexOf(t.cat)>-1;});
   const totalCaro=caroTxs.reduce(function(s,t){return s+t.valor;},0);
   if(!totalCaro)return'';
-  const desglose=caroCats.map(function(c){
+  const caroShades=['#0369a1','#38bdf8','#bae6fd'];
+  const desglose=caroCats.map(function(c,ci){
     const v=resumenTxData.filter(function(t){return t.cat===c;}).reduce(function(s,t){return s+t.valor;},0);
     if(!v)return'';
     const pct=Math.round(v/totalCaro*100);
-    return '<div class="mlegend-row"><span class="mlegend-dot" style="background:'+CATCOL[c]+'"></span><span class="mlegend-lbl">'+CATLAB[c]+'</span><span class="mlegend-amt">'+arsF(v)+' ('+pct+'%)</span></div>';
+    return '<div class="mlegend-row"><span class="mlegend-dot" style="background:'+caroShades[ci]+'"></span><span class="mlegend-lbl">'+CATLAB[c]+'</span><span class="mlegend-amt">'+arsF(v)+' ('+pct+'%)</span></div>';
   }).join('');
   return '<div class="mcard"><div class="mcard-lbl">Costo Caro</div><div class="mcard-val" style="margin-bottom:8px">'+arsF(totalCaro)+'</div>'+desglose+'</div>';
 }
