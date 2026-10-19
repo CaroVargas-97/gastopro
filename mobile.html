@@ -851,7 +851,7 @@ function buildCostoCaroCard(){
     const pct=Math.round(v/totalCaro*100);
     return '<div class="mlegend-row"><span class="mlegend-dot" style="background:'+caroShades[ci]+'"></span><span class="mlegend-lbl">'+CATLAB[c]+'</span><span class="mlegend-amt">'+arsF(v)+' ('+pct+'%)</span></div>';
   }).join('');
-  return '<div class="mcard"><div class="mcard-lbl">Costo Caro</div><div class="mcard-val" style="margin-bottom:8px">'+arsF(totalCaro)+'</div>'+desglose+'</div>';
+  return '<div class="mcard"><div class="mcard-lbl">Sueldo Caro</div><div class="mcard-val" style="margin-bottom:8px">'+arsF(totalCaro)+'</div>'+desglose+'</div>';
 }
 
 function resumenChartColors(){return{text3:'#b0ada6',grid:'rgba(0,0,0,.05)',barDim:'#c9c2ff'};}
