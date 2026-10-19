@@ -730,6 +730,7 @@ function formVida(){
         '<span class="amt-prefix">$</span>'+
         '<input class="amt-input" type="number" id="v-val" inputmode="decimal" placeholder="0">'+
       '</div>'+
+      '<div class="ff" style="margin-bottom:14px"><label class="flabel">Monto en USD (opcional — si una parte se paga en dólares)</label><input class="minput" type="number" id="v-valusd" inputmode="decimal" placeholder="0"></div>'+
       '<div class="row2" style="margin-bottom:14px">'+
         '<div class="ff"><label class="flabel">Mes</label><select class="minput" id="v-mes">'+mesOpts(mes)+'</select></div>'+
         '<div class="ff"><label class="flabel">Método</label><select class="minput" id="v-met"><option value="CREDITO">Crédito</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option></select></div>'+
@@ -750,11 +751,12 @@ async function saveVida(){
   const mes=document.getElementById('v-mes').value;
   const cat=document.getElementById('v-cat').value;
   const desc=document.getElementById('v-desc').value.trim()||CATLAB[cat]||cat;
-  const val=parseFloat(document.getElementById('v-val').value);
+  const val=parseFloat(document.getElementById('v-val').value)||0;
+  const valUsd=parseFloat(document.getElementById('v-valusd').value)||0;
   const met=document.getElementById('v-met').value;
   const fuente=document.getElementById('v-fuente').value;
   const notas=document.getElementById('v-notas').value.trim();
-  if(!val){showToast('Completá el monto');return;}
+  if(!val&&!valUsd){showToast('Completá al menos un monto (ARS o USD)');return;}
   const btn=document.querySelector('.btn-save');
   btn.disabled=true;btn.textContent='Verificando...';
   try{
@@ -769,9 +771,10 @@ async function saveVida(){
     btn.textContent='Guardando...';
     await sb.from('transacciones').insert({
       user_id:currentUser.id,mes,descripcion:desc.toUpperCase(),
-      metodo:met,valor:val,usd:val/tcVal,cat,fuente,notas:notas||null
+      metodo:met,valor:val,usd:valUsd||val/tcVal,cat,fuente,notas:notas||null
     });
     showToast('✓ Gasto guardado');
+    document.getElementById('v-valusd').value='';
     renderTab('vida');
     loadHistVida();
   }catch(e){showToast('Error: '+e.message);btn.disabled=false;btn.textContent='✓ Guardar gasto';}
