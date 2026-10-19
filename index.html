@@ -603,6 +603,37 @@ tr:hover .action-btns{opacity:1}
             </button>
           </div>
         </div>
+
+        <div class="dash-section-lbl"><i class="ti ti-user-dollar" style="font-size:13px"></i> Sueldo Caro</div>
+        <div class="w-card" style="max-width:480px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div class="ff"><label class="flabel">Mes</label>
+              <select class="finput" id="scMes">
+                <option value="">Seleccioná</option>
+                <option>enero</option><option>febrero</option><option>marzo</option><option>abril</option>
+                <option>mayo</option><option>junio</option><option>julio</option><option>agosto</option>
+                <option>septiembre</option><option>octubre</option><option>noviembre</option><option>diciembre</option>
+              </select>
+            </div>
+            <div class="ff"><label class="flabel">Concepto</label>
+              <select class="finput" id="scCat">
+                <option value="SUELDO">Sueldo (Caro)</option>
+                <option value="931">931</option>
+                <option value="BOLETAS SINDICALES">Boletas sindicales</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div class="ff"><label class="flabel">Valor ARS</label><input class="finput" id="scVal" type="number" placeholder="0"></div>
+            <div class="ff"><label class="flabel">Valor USD (opcional)</label><input class="finput" id="scValUsd" type="number" placeholder="0"></div>
+          </div>
+          <div class="ff"><label class="flabel">Método</label>
+            <select class="finput" id="scMet"><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="CREDITO">Crédito</option></select>
+          </div>
+          <button class="btn btn-accent" id="sc-add-btn" style="width:100%;padding:10px;justify-content:center" onclick="addSueldoCaro()">
+            <i class="ti ti-plus"></i> Agregar
+          </button>
+        </div>
       </div>
 
       <!-- HISTORIAL -->
@@ -1531,6 +1562,24 @@ async function addManual(){
   document.getElementById('mDesc').value='';document.getElementById('mVal').value='';document.getElementById('mValUsd').value='';
   document.getElementById('mFuente').value='';document.getElementById('mNotas').value='';
   populateMesFilter();showToast('✓ Gasto agregado');go('overview');
+}
+
+async function addSueldoCaro(){
+  const mes=document.getElementById('scMes').value;
+  const cat=document.getElementById('scCat').value;
+  const metodo=document.getElementById('scMet').value;
+  const valor=parseFloat(document.getElementById('scVal').value)||0;
+  const valorUsd=parseFloat(document.getElementById('scValUsd').value)||0;
+  if(!mes||(!valor&&!valorUsd)){showToast('Completá el mes y al menos un monto (ARS o USD)');return;}
+  const btn=document.getElementById('sc-add-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="border-top-color:#fff;width:14px;height:14px;margin:0 auto"></div>';}
+  const t={mes,desc:(CATLAB[cat]||cat).toUpperCase(),metodo,valor,usd:valorUsd||valor/tc(),cat,fuente:'',notas:null};
+  const ok=await saveTransaction(t);
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-plus"></i> Agregar';}
+  if(!ok)return;
+  data.push(t);
+  document.getElementById('scVal').value='';document.getElementById('scValUsd').value='';
+  populateMesFilter();showToast('✓ Sueldo Caro agregado');go('overview');
 }
 
 async function borrarFiltrados(){
