@@ -1978,8 +1978,8 @@ function buildInvAnalisis(data){
       '<div style="display:flex;align-items:center;gap:24px">'+
         '<div style="position:relative;height:170px;width:170px;flex-shrink:0"><canvas id="cInvDonut"></canvas></div>'+
         '<div id="inv-donut-legend" style="flex:1;min-width:0">'+
-          '<div class="legend-row"><span class="legend-dot" style="background:var(--red)"></span><span class="legend-lbl">ARS</span><span class="legend-amt">'+ars(totalARS)+'</span></div>'+
-          '<div class="legend-row"><span class="legend-dot" style="background:var(--usd)"></span><span class="legend-lbl">USD</span><span class="legend-amt">'+ars(Math.round(totalUSD*T))+'</span></div>'+
+          '<div class="legend-row"><span class="legend-dot" style="background:var(--red)"></span><span class="legend-lbl">Pagado en ARS</span><span class="legend-amt">'+ars(totalARS)+'</span></div>'+
+          '<div class="legend-row" style="align-items:flex-start"><span class="legend-dot" style="background:var(--usd);margin-top:4px"></span><div style="flex:1;min-width:0"><div class="legend-lbl" style="margin-bottom:1px">Pagado en USD</div><div style="font-size:10px;color:var(--text3)">valorizado a $'+Math.round(T).toLocaleString('es-AR')+'</div></div><div style="text-align:right"><div class="legend-amt">'+usdFmt(totalUSD)+'</div><div style="font-size:10px;color:var(--text3)">≈ '+ars(Math.round(totalUSD*T))+'</div></div></div>'+
         '</div>'+
       '</div>'+
     '</div>'+
