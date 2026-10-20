@@ -1479,8 +1479,8 @@ function startEdit(di){
     '<td data-label="Categoría"><select class="edit-sel" id="e-cat">'+catopts+'</select></td>'+
     '<td data-label="Fuente"><input class="edit-inp" id="e-fuente" value="'+(t.fuente||'')+'" list="fuente-datalist" placeholder="AMEX, BBVA..." style="width:90px"></td>'+
     '<td data-label="Método"><select class="edit-sel" id="e-met"><option value="EFECTIVO" '+(t.metodo==='EFECTIVO'?'selected':'')+'>Efectivo</option><option value="CREDITO" '+(t.metodo==='CREDITO'?'selected':'')+'>Crédito</option><option value="TRANSFERENCIA" '+(t.metodo==='TRANSFERENCIA'?'selected':'')+'>Transferencia</option></select></td>'+
-    '<td data-label="ARS" style="text-align:right"><input class="edit-inp" id="e-val" value="'+t.valor+'" type="number" style="width:100px;text-align:right"></td>'+
-    '<td data-label="USD" style="text-align:right;font-size:11px;color:var(--text3)">'+usdFmt(t.valor/T)+'</td>'+
+    '<td data-label="ARS" style="text-align:right"><input class="edit-inp" id="e-val" value="'+t.valor+'" type="number" style="width:90px;text-align:right"></td>'+
+    '<td data-label="USD" style="text-align:right"><input class="edit-inp" id="e-val-usd" value="'+(t.usd||'')+'" type="number" placeholder="0" style="width:80px;text-align:right"></td>'+
     '<td data-label=""><div style="display:flex;gap:4px">'+
       '<button class="icon-btn icon-btn-save" id="e-save"><i class="ti ti-check"></i></button>'+
       '<button class="icon-btn icon-btn-cancel" id="e-cancel"><i class="ti ti-x"></i></button>'+
@@ -1496,11 +1496,12 @@ async function saveRow(di){
   const cat=document.getElementById('e-cat').value;
   const fuente=normFuente(document.getElementById('e-fuente').value);
   const met=document.getElementById('e-met').value;
-  const val=parseFloat(document.getElementById('e-val').value);
+  const val=parseFloat(document.getElementById('e-val').value)||0;
+  const valUsd=parseFloat(document.getElementById('e-val-usd').value)||0;
   const notas=(document.getElementById('e-notas').value||'').trim();
-  if(!desc||!val){showToast('Completá todos los campos');return;}
+  if(!desc||(!val&&!valUsd)){showToast('Completá la descripción y al menos un monto (ARS o USD)');return;}
   const oldCat=data[di].cat;
-  data[di]={...data[di],mes,desc,cat,fuente,metodo:met,valor:val,usd:val/tc(),notas};
+  data[di]={...data[di],mes,desc,cat,fuente,metodo:met,valor:val,usd:valUsd||val/tc(),notas};
   await saveTransaction(data[di]);
   editingIdx=null;renderTx();
   if(cat!==oldCat){
