@@ -1350,7 +1350,7 @@ function renderTx(){
       '<td data-label="Método"><span class="badge '+(t.metodo==='EFECTIVO'?'b-ef':t.metodo==='TRANSFERENCIA'?'b-tr':'b-cr')+'">'+(t.metodo==='EFECTIVO'?'Efectivo':t.metodo==='TRANSFERENCIA'?'Transferencia':'Crédito')+'</span></td>'+
       '<td data-label="Cargado" style="font-size:10px;color:var(--text3);white-space:nowrap">'+(t.fecha||'')+'</td>'+
       '<td data-label="ARS" style="text-align:right"><div class="td-mono">'+ars(t.valor)+'</div></td>'+
-      '<td data-label="USD" style="text-align:right"><div class="td-mono-sm">'+(usdVal>0?usdFmt(usdVal):'')+'</div></td>'+
+      '<td data-label="USD" style="text-align:right"><div class="td-mono-sm" style="color:var(--usd);font-weight:700">'+(usdVal>0?usdFmt(usdVal):'')+'</div></td>'+
       '<td data-label=""><div class="action-btns">'+
         '<button class="icon-btn icon-btn-edit" data-di="'+di+'" title="Editar"><i class="ti ti-pencil"></i></button>'+
         '<button class="icon-btn icon-btn-del" data-di="'+di+'" title="Eliminar"><i class="ti ti-trash"></i></button>'+
