@@ -1340,7 +1340,7 @@ function renderTx(){
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
   updateDupButton();
   const rows=filtered.map(di=>{
-    const t=data[di];const usdVal=t.valor/T;
+    const t=data[di];const usdVal=t.valor>0?t.valor/T:(t.usd||0);
     return '<tr>'+
       '<td data-label="Mes" style="color:var(--text3);font-size:11px;text-transform:capitalize;font-weight:600">'+t.mes+'</td>'+
       '<td class="td-desc" data-label="Descripción">'+t.desc+(t.notas?'<div style="font-size:10px;color:var(--text3);font-style:italic;margin-top:2px">'+t.notas+'</div>':'')+
