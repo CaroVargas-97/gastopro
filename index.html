@@ -467,6 +467,7 @@ tr:hover .action-btns{opacity:1}
 
       <!-- TRANSACCIONES -->
       <div class="section" id="sec-transacciones">
+        <div class="widget-grid widget-grid-3" id="tx-stats" style="margin-bottom:20px"></div>
         <div class="tx-toolbar">
           <select class="fsel" id="fMes" onchange="renderTx()"><option value="">Todos los meses</option></select>
           <select class="fsel" id="fCat" onchange="renderTx()">
@@ -491,8 +492,7 @@ tr:hover .action-btns{opacity:1}
           <button class="btn btn-danger" onclick="borrarFiltrados()" style="margin-left:auto" id="btn-borrar-filtrados"><i class="ti ti-trash" style="font-size:13px"></i> Borrar filtrados</button>
           <button class="btn btn-danger" onclick="borrarTodo()"><i class="ti ti-trash" style="font-size:13px"></i> Borrar todo</button>
         </div>
-        <div id="tx-mes-summary" style="margin-bottom:12px"></div>
-        <div class="card" style="padding:0;overflow:hidden">
+        <div class="w-card" style="padding:0;overflow:hidden">
           <div class="tx-wrap"><div id="tx-body"></div></div>
         </div>
       </div>
@@ -1299,33 +1299,15 @@ function catMatch(t,cat){return!cat||(cat==='__caro__'?CARO_CATS.includes(t.cat)
 const FUENTE_VIRTUAL_METODOS=['EFECTIVO','TRANSFERENCIA'];
 function fuenteEfectiva(t){return t.fuente||(FUENTE_VIRTUAL_METODOS.includes(t.metodo)?t.metodo:'');}
 
+function clearTxFilters(){
+  ['fMes','fCat','fMet','fFuente','fText'].forEach(id=>{document.getElementById(id).value='';});
+  renderTx();
+}
+
 function renderTx(){
   const T=tc();
   const mes=document.getElementById('fMes').value;
   const cat=document.getElementById('fCat').value;
-  const summaryEl=document.getElementById('tx-mes-summary');
-  if(summaryEl){
-    if(mes||cat){
-      const scopeTxs=data.filter(t=>(!mes||t.mes===mes)&&catMatch(t,cat));
-      const totARS=scopeTxs.reduce((s,t)=>s+t.valor,0);
-      const totUSD=scopeTxs.reduce((s,t)=>s+(t.usd>0?t.usd:t.valor/T),0);
-      const efARS=scopeTxs.filter(t=>t.metodo==='EFECTIVO').reduce((s,t)=>s+t.valor,0);
-      const crARS=scopeTxs.filter(t=>t.metodo==='CREDITO').reduce((s,t)=>s+t.valor,0);
-      const efPct=totARS>0?Math.round(efARS/totARS*100):0;
-      const label=(cat?(cat==='__caro__'?'Sueldo Caro':(CATLAB[cat]||cat)):'')+(cat&&mes?' · ':'')+(mes?mes:(cat?'todos los meses':''));
-      summaryEl.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-lg);padding:14px 18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">'+
-        '<div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:capitalize;min-width:60px">'+label+'</div>'+
-        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Total ARS</div><div style="font-size:16px;font-weight:700">'+ars(totARS)+'</div></div>'+
-        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Equiv. USD</div><div style="font-size:16px;font-weight:700;color:var(--green)">'+usdFmt(totUSD)+'</div></div>'+
-        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Efectivo</div><div style="font-size:14px;font-weight:700">'+efPct+'% <span style="font-size:11px;font-weight:400;color:var(--text3)">'+ars(efARS)+'</span></div></div>'+
-        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Crédito</div><div style="font-size:14px;font-weight:700">'+(100-efPct)+'% <span style="font-size:11px;font-weight:400;color:var(--text3)">'+ars(crARS)+'</span></div></div>'+
-        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Transacciones</div><div style="font-size:14px;font-weight:700">'+scopeTxs.length+'</div></div>'+
-        '<button class="btn" style="margin-left:auto;font-size:11px" onclick="document.getElementById(\'fMes\').value=\'\';document.getElementById(\'fCat\').value=\'\';renderTx()"><i class="ti ti-x"></i> Limpiar filtro</button>'+
-      '</div>';
-    }else{
-      summaryEl.innerHTML='';
-    }
-  }
   const met=document.getElementById('fMet').value;
   const fuente=document.getElementById('fFuente').value;
   const txt=(document.getElementById('fText').value||'').toLowerCase();
@@ -1336,6 +1318,27 @@ function renderTx(){
     const txtOk=!txt||(t.desc||'').toLowerCase().includes(txt)||(t.notas||'').toLowerCase().includes(txt)||(t.fuente||'').toLowerCase().includes(txt);
     if((!mes||t.mes===mes)&&catMatch(t,cat)&&(!met||t.metodo===met)&&fuenteOk&&txtOk)filtered.push(i);
   });
+  const statsEl=document.getElementById('tx-stats');
+  if(statsEl){
+    const scopeTxs=filtered.map(i=>data[i]);
+    const totARS=scopeTxs.reduce((s,t)=>s+t.valor,0);
+    const totUSD=scopeTxs.reduce((s,t)=>s+(t.usd>0?t.usd:t.valor/T),0);
+    const anyFilter=mes||cat||met||fuente||txt;
+    const label=cat?(cat==='__caro__'?'Sueldo Caro':(CATLAB[cat]||cat)):(mes?mes.charAt(0).toUpperCase()+mes.slice(1):'Todas las transacciones');
+    statsEl.innerHTML=
+      '<div class="w-card" style="display:flex;align-items:center;gap:14px">'+
+        '<span class="dash-icon-badge" style="background:var(--accent-light);color:var(--accent);width:38px;height:38px;font-size:17px"><i class="ti ti-report-money"></i></span>'+
+        '<div><div class="w-metric-lbl">'+label+(anyFilter?'<button class="btn" style="margin-left:8px;font-size:10px;padding:2px 8px" onclick="clearTxFilters()"><i class="ti ti-x" style="font-size:10px"></i> Limpiar</button>':'')+'</div><div class="w-metric-val" style="font-size:19px">'+ars(totARS)+'</div></div>'+
+      '</div>'+
+      '<div class="w-card" style="display:flex;align-items:center;gap:14px">'+
+        '<span class="dash-icon-badge" style="background:var(--usd-bg);color:var(--usd);width:38px;height:38px;font-size:17px"><i class="ti ti-currency-dollar"></i></span>'+
+        '<div><div class="w-metric-lbl">Equivalente USD</div><div class="w-metric-val" style="font-size:19px;color:var(--usd)">'+usdFmt(totUSD)+'</div></div>'+
+      '</div>'+
+      '<div class="w-card" style="display:flex;align-items:center;gap:14px">'+
+        '<span class="dash-icon-badge" style="background:var(--bg3);color:var(--text2);width:38px;height:38px;font-size:17px"><i class="ti ti-list-details"></i></span>'+
+        '<div><div class="w-metric-lbl">Transacciones</div><div class="w-metric-val" style="font-size:19px">'+scopeTxs.length+'</div></div>'+
+      '</div>';
+  }
   document.getElementById('tx-count').textContent=filtered.length+' resultados';
   if(!filtered.length){document.getElementById('tx-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
   updateDupButton();
